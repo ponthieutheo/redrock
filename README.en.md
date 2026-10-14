@@ -19,7 +19,7 @@
   <a href="LICENSES.md"><img src="https://img.shields.io/badge/media-CC%20BY--NC%204.0-lightgrey" alt="Media: CC BY-NC 4.0"></a>
 </p>
 
-https://github.com/user-attachments/assets/c134c89d-277b-4564-adaf-4527ab3d1444
+https://github.com/user-attachments/assets/18a702d7-93f2-478b-837a-3c2cecc52cc3
 
 <p align="center">
   <img src="docs/media/scene-pc.png" alt="The 3D trading floor: RedRock at its desk, under its screens (capital, positions, survival, news)">
@@ -100,7 +100,7 @@ step-by-step install **[docs/installation.md](docs/installation.md)** · usage *
 
 The install in 30 seconds:
 
-https://github.com/user-attachments/assets/1373c1a6-af0e-4126-9951-142f84e1d82e
+https://github.com/user-attachments/assets/683c0bcc-1021-407d-aa4d-5f33f6abafc7
 
 ## On all your screens
 
@@ -119,7 +119,7 @@ the app to your phone **without a code**: your Tailscale account is the key ([do
 
 As a vertical, phone-format video:
 
-https://github.com/user-attachments/assets/e716d1a7-4be9-4580-ac56-c1650e17305d
+https://github.com/user-attachments/assets/d844a7f4-043d-4c34-a544-37d436ffc5d7
 
 <p align="center">
   <img src="docs/media/scene-tel.png" width="270" alt="The app on a phone: the screens on top, the character below">
