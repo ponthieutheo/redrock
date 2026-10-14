@@ -19,16 +19,10 @@
   <a href="LICENSES.md"><img src="https://img.shields.io/badge/m%C3%A9dias-CC%20BY--NC%204.0-lightgrey" alt="Médias : CC BY-NC 4.0"></a>
 </p>
 
+https://github.com/user-attachments/assets/f052d4ff-7222-4c1e-bd21-9c66656a7bc9
+
 <p align="center">
   <img src="docs/media/scene-pc.png" alt="La salle des marchés en 3D : RedRock à son bureau, sous ses écrans (capital, positions, survie, actus)">
-</p>
-
-<p align="center">
-  <img src="docs/media/apercu.webp" width="720" alt="On touche le perso, le chat s'ouvre, la commande /status, une question, il répond">
-</p>
-
-<p align="center">
-  <b>Vidéos</b> : <a href="docs/media/teaser.mp4">le teaser (30 s)</a> · <a href="docs/media/installation.mp4">l'installation pas à pas (40 s)</a>
   <br><sub>Images et vidéos tournées sur des données inventées, en simulation.</sub>
 </p>
 
@@ -55,6 +49,10 @@ perpétuels d'[Hyperliquid](https://hyperliquid.xyz), avec une règle simple : *
   pas ta machine.
 
 <p align="center">
+  <img src="docs/media/apercu.webp" width="720" alt="On touche le perso, le chat s'ouvre, la commande /status, une question, il répond">
+</p>
+
+<p align="center">
   <img src="docs/media/mort.png" width="720" alt="La relève : la tombe de la génération 3, la génération 4 tombe du plafond sous les confettis">
 </p>
 
@@ -72,13 +70,18 @@ l'adresse de l'app et un lien d'appairage pour tes appareils.
 
 Guide pas à pas : **[docs/installation.md](docs/installation.md)** · Utilisation : **[docs/usage.md](docs/usage.md)**
 
-## Sur ton téléphone
+L'installation en 30 secondes :
 
-RedRock est une app web installable (PWA), sans store :
+https://github.com/user-attachments/assets/1373c1a6-af0e-4126-9951-142f84e1d82e
+
+## Sur tous tes écrans
+
+RedRock est une app web installable (PWA), sans store : la même app sur ton PC, ta TV et ton téléphone.
 
 | Appareil | Comment |
 |---|---|
 | PC | ouvre l'adresse de l'app dans ton navigateur (Chrome, Edge, Firefox, Safari) |
+| TV | ouvre l'app dans le navigateur de la TV (ou d'un PC branché dessus), puis Réglages → **Mode TV** : plein écran, l'écran reste allumé |
 | Android | Chrome, menu ⋮ → **Installer l'application** |
 | iPhone / iPad | Safari, bouton Partager → **Sur l'écran d'accueil** |
 

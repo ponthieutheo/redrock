@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>RedRock : aperçu (GIF du README)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 960px; height: 600px; overflow: hidden; background: #0c0304; }
+  #app { position: absolute; inset: 0; width: 960px; height: 600px; border: 0; }
+  /* toucher : un rond blanc qui s'écrase puis une onde, à plat */
+  #tap { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(246,235,230,.85); opacity: 0; pointer-events: none; }
+  #ring { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 3px solid #f6ebe6; opacity: 0; pointer-events: none; }
+</style></head>
+<body>
+<iframe id="app" src="/?render=force"></iframe>
+<div id="tap"></div><div id="ring"></div>
+<script src="/media/comp.js"></script>
+<script>
+// 12 s en boucle : la salle, on touche le perso, le chat s'ouvre, /status, une question, il répond, on referme.
+const TAP = [484, 452], Q1 = "/status", Q2 = "Ta journée, ça va ?";
+let W;
+const run = C.timeline([
+  {t: 1.55, fn: () => W.__chatOpen()},
+  {t: 3.55, fn: () => C.submit(W)},
+  {t: 6.0, fn: () => fetch("/__gate/on")},
+  {t: 6.25, fn: () => C.submit(W)},
+  {t: 10.6, fn: () => W.__chatClose()},
+]);
+window.COMP = {
+  async init() {
+    await C.ready("app", 9500);   // la bulle d'accueil a le temps de disparaître : la boucle repart sur une salle calme
+    W = C.win("app");
+  },
+  async frame(t, dt) {
+    await run(t);
+    if (t >= 2.6 && t < 3.5) C.typeInto(W, Q1, Math.floor((t - 2.6) / .11) + 1);
+    if (t >= 4.9 && t < 6.2) C.typeInto(W, Q2, Math.floor((t - 4.9) / .06) + 1);
+    if (t >= 6.55 && t < 9.5 && Math.round(t * 15) % 2 === 0) await C.release(W);   // un morceau de réponse toutes les 2 images
+    C.step(W, dt);
+    // doigt : apparaît à 1,15 s, appuie à 1,4 s, onde jusqu'à 2 s
+    const tap = C.$("tap"), ring = C.$("ring");
+    for (const el of [tap, ring]) { el.style.left = TAP[0] + "px"; el.style.top = TAP[1] + "px"; }
+    const a = C.seg(t, 1.15, 1.35), press = C.seg(t, 1.35, 1.5, C.E.io), gone = C.seg(t, 1.6, 1.9);
+    tap.style.opacity = (a * (1 - gone)).toFixed(3);
+    tap.style.transform = `scale(${(1.25 - .25 * a - .25 * press + .35 * gone).toFixed(3)})`;
+    const r = C.seg(t, 1.4, 2.1, C.E.out);
+    ring.style.opacity = (t > 1.4 && t < 2.1 ? 1 - r : 0).toFixed(3);
+    ring.style.transform = `scale(${(1 + r * 2.6).toFixed(3)})`;
+  },
+};
+</script>
+</body></html>

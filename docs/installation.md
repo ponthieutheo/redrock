@@ -118,3 +118,10 @@ supprime le dossier.
 - **L'agent ne répond pas dans le chat** : `docker compose logs agent --tail 50`. Vérifie le crédit OpenRouter.
 - **Il est mort** : c'est le jeu. La surveillance fait naître la génération suivante tant qu'il reste du
   capital ; sinon recharge le sous-compte, puis `sh ops/rebirth.sh`.
+
+## Vérifier l'installation (contributeurs)
+
+`sh tests/install/run.sh` rejoue toute l'installation sur une machine Linux neuve, recréée dans un conteneur
+Docker sur ton ordinateur : clone, `./install.sh` au clavier, app, chat, accès Tailscale (simulé), mort et
+renaissance en simulation, passage au réel avec un compte inventé et vide, retour en simulation. Aucun compte réel,
+rien ne sort de ta machine (~15 min, ~3 Go). À lancer après toute modification de `install.sh` ou de la compose.

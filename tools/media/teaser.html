@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>RedRock : teaser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #0c0304; --blood: #f0101c; --bone: #f6ebe6; --ash: #ad918c; --dust: #735955; --line: #2b1416; --bar: #1a0b0d; --app: #120506; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); color: var(--bone); font-family: 'Chakra Petch', sans-serif; }
+  #stage { position: absolute; inset: 0; overflow: hidden; }
+  .part { position: absolute; inset: 0; overflow: hidden; display: none; }
+  .panel { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  iframe { border: 0; display: block; }
+  em { font-style: normal; color: var(--blood); }
+  .mask { overflow: hidden; } .mask > * { display: block; }
+  /* légende : plaque noire à plat */
+  .cap { position: absolute; left: 64px; background: var(--ink); padding: 30px 40px 34px; width: 640px; display: none; }
+  .cap.bl { bottom: 72px; } .cap.tl { top: 72px; }
+  .cap .h { font-weight: 700; font-size: 64px; line-height: 1.02; text-transform: uppercase; }
+  .cap .s { font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 30px; line-height: 1.25; color: var(--ash); margin-top: 14px; }
+  .word { font-weight: 700; letter-spacing: .02em; line-height: 1; display: flex; }
+  .word span { display: inline-block; }
+  .tag { font-family: 'Barlow', sans-serif; font-weight: 500; color: var(--ash); }
+
+  /* ---------- partie 1 : la salle ---------- */
+  #app { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; }
+  #hook { position: absolute; left: 0; top: 0; bottom: 0; width: 800px; background: var(--ink); display: flex; flex-direction: column; justify-content: center; padding-left: 100px; }
+  #hook .l { font-weight: 700; font-size: 100px; line-height: 1.04; text-transform: uppercase; }
+  #hook .l span { display: inline-block; }
+  #title { background: var(--ink); gap: 24px; }
+  #title img { width: 200px; height: 200px; object-fit: contain; }
+  #title .word { font-size: 176px; }
+  #title .tag { font-size: 46px; }
+
+  /* ---------- partie 2 : les appareils ---------- */
+  #devs { position: absolute; inset: 0; background: radial-gradient(1100px 800px at 66% 52%, #2a0809 0%, #170506 45%, var(--ink) 100%); }
+  .dev { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+  .glow { position: absolute; left: 0; top: 0; width: 1400px; height: 220px; margin: -110px 0 0 -700px; border-radius: 50%;
+          background: radial-gradient(closest-side, rgba(0,0,0,.6), rgba(0,0,0,0)); }
+  /* écran d'ordinateur, à plat */
+  #mon { width: 1480px; height: 1048px; }
+  #mon .scr { position: absolute; left: 0; top: 0; width: 1480px; height: 940px; background: #050102; border: 2px solid var(--line); border-radius: 22px; padding: 18px; }
+  #mon .win { position: relative; width: 1440px; height: 900px; border-radius: 8px; overflow: hidden; background: var(--bar); }
+  #mon .bb { height: 40px; display: flex; align-items: center; gap: 14px; padding: 0 16px; background: var(--bar); }
+  #mon .bb .dots { display: flex; gap: 8px; } #mon .bb .dots i { width: 12px; height: 12px; border-radius: 50%; background: #3a2124; display: block; }
+  #mon .bb .tabx { display: flex; align-items: center; gap: 9px; height: 30px; padding: 0 16px; margin-top: 10px; align-self: flex-end; background: var(--app); border-radius: 9px 9px 0 0;
+                   font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 16px; color: var(--bone); }
+  #mon .bb .tabx img { width: 18px; height: 18px; }
+  #mon .bb .url { flex: 0 1 560px; margin-left: 40px; height: 28px; border-radius: 14px; background: var(--ink); display: flex; align-items: center; padding: 0 16px;
+                  font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 16px; color: var(--ash); }
+  #mon .bb .url b { color: var(--bone); font-weight: 600; }
+  #a-pc { width: 1440px; height: 860px; }
+  #mon .neck { position: absolute; left: 650px; top: 940px; width: 180px; height: 90px; background: linear-gradient(#1a0b0d, #120607); clip-path: polygon(22% 0, 78% 0, 88% 100%, 12% 100%); }
+  #mon .base { position: absolute; left: 520px; top: 1028px; width: 440px; height: 20px; border-radius: 10px; background: #1d0c0e; border: 2px solid var(--line); }
+  /* téléviseur */
+  #tv { width: 1628px; height: 1110px; }
+  #tv .board { position: absolute; left: -130px; top: 988px; width: 1888px; height: 122px; background: linear-gradient(#2a1214, #180809); border-top: 3px solid #4d2428; border-radius: 4px; }
+  #tv .board i { position: absolute; top: 30px; width: 2px; height: 70px; background: #3a1a1d; } #tv .board i:nth-child(1) { left: 629px; } #tv .board i:nth-child(2) { left: 1258px; }
+  #tv .scr { position: absolute; left: 0; top: 0; width: 1628px; height: 928px; background: #050102; border: 2px solid var(--line); border-radius: 12px; padding: 12px; }
+  #a-tv { width: 1600px; height: 900px; }
+  #tv .led { position: absolute; left: 808px; top: 917px; width: 12px; height: 4px; border-radius: 2px; background: var(--blood); }
+  #tv .foot { position: absolute; top: 928px; width: 26px; height: 62px; background: #1a0b0d; border: 2px solid var(--line); border-top: 0; }
+  #tv .foot.l { left: 220px; transform: skewX(14deg); } #tv .foot.r { left: 1382px; transform: skewX(-14deg); }
+  /* téléphone */
+  #ph { width: 416px; height: 870px; }
+  #ph .body { position: absolute; inset: 0; background: #050102; border: 2px solid var(--line); border-radius: 66px; padding: 11px; }
+  #ph .scr { position: relative; width: 390px; height: 844px; border-radius: 54px; overflow: hidden; background: var(--app); }
+  #home { position: absolute; inset: 0; background: radial-gradient(420px 520px at 70% 20%, #5b1014 0%, #2a0709 45%, #120405 100%); }
+  #home .grid { position: absolute; left: 22px; right: 22px; top: 78px; display: grid; grid-template-columns: repeat(4, 1fr); row-gap: 26px; }
+  .ico { display: flex; flex-direction: column; align-items: center; gap: 7px; font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 12.5px; color: #f3e6e2; }
+  .ico .sq { width: 62px; height: 62px; border-radius: 15px; display: grid; place-items: center; overflow: hidden; }
+  .ico .sq svg { width: 34px; height: 34px; }
+  .ico .sq img { width: 62px; height: 62px; display: block; }
+  #home .dock { position: absolute; left: 14px; right: 14px; bottom: 22px; height: 92px; border-radius: 34px; background: rgba(255,255,255,.12);
+                display: grid; grid-template-columns: repeat(4, 1fr); align-items: center; justify-items: center; }
+  #home .dock .ico span { display: none; }
+  #pwa { position: absolute; inset: 0; background: var(--app); opacity: 0; }
+  #a-tel { position: absolute; left: 0; top: 47px; width: 390px; height: 797px; }
+  #zoomer { position: absolute; background: var(--app); display: none; overflow: hidden; }
+  #zoomer img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+  #sbar { position: absolute; left: 0; right: 0; top: 0; height: 47px; display: flex; align-items: center; justify-content: space-between; padding: 6px 30px 0 46px;
+          font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 17px; color: #fff; z-index: 3; }
+  #sbar svg { height: 13px; }
+  #island { position: absolute; left: 136px; top: 11px; width: 118px; height: 34px; border-radius: 17px; background: #000; z-index: 4; }
+  #hbar { position: absolute; left: 128px; bottom: 8px; width: 134px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.85); z-index: 4; }
+  #finger { position: absolute; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: rgba(246,235,230,.8); opacity: 0; z-index: 5; }
+  #ring { position: absolute; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; border: 3px solid #f6ebe6; opacity: 0; z-index: 5; }
+  /* textes des appareils, à gauche */
+  .dcap { position: absolute; left: 104px; top: 50%; width: 560px; transform: translateY(-50%); display: none; }
+  .dcap .k { font-weight: 700; font-size: 24px; letter-spacing: .22em; color: var(--blood); margin-bottom: 18px; }
+  .dcap .h { font-weight: 700; font-size: 96px; line-height: 1; text-transform: uppercase; }
+  .dcap .s { font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 34px; line-height: 1.25; color: var(--ash); margin-top: 22px; }
+  #trio-cap { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; display: none; }
+  /* affiche du README (image fixe du trio) : nom en haut, phrase en bas, bouton lecture au centre */
+  #poster { position: absolute; inset: 0; display: none; }
+  #poster .brand { position: absolute; left: 72px; top: 52px; display: flex; align-items: center; gap: 20px; }
+  #poster .brand img { width: 84px; height: 84px; }
+  #poster .brand b { font-weight: 700; font-size: 76px; letter-spacing: .02em; }
+  #poster .line { position: absolute; left: 0; right: 0; bottom: 58px; text-align: center; font-weight: 700; font-size: 54px; text-transform: uppercase; }
+  #poster .play { position: absolute; left: 50%; top: 47%; width: 168px; height: 168px; margin: -84px 0 0 -84px; border-radius: 50%;
+                  background: rgba(12,3,4,.86); border: 4px solid var(--blood); display: grid; place-items: center; }
+  #poster .play i { display: block; width: 0; height: 0; border-left: 58px solid var(--blood); border-top: 36px solid transparent; border-bottom: 36px solid transparent; margin-left: 12px; }
+  #trio-cap .h { font-weight: 700; font-size: 64px; text-transform: uppercase; line-height: 1; }
+
+  /* ---------- partie 3 : la mort, la relève, la fin ---------- */
+  #end { background: var(--ink); gap: 22px; }
+  #end img { width: 170px; height: 170px; object-fit: contain; }
+  #end .word { font-size: 140px; }
+  #end .tag { font-size: 40px; }
+  #end .pill { background: var(--blood); color: var(--ink); font-weight: 700; font-size: 30px; letter-spacing: .16em; padding: 10px 26px 8px; margin-top: 14px; }
+  #end .url { font-weight: 600; font-size: 60px; letter-spacing: .01em; }
+  #end .lic { font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 26px; color: var(--dust); margin-top: 4px; }
+  #fade { position: absolute; inset: 0; background: var(--ink); opacity: 0; pointer-events: none; }
+</style></head>
+<body>
+<div id="stage">
+
+<template id="tpl-salle">
+  <iframe id="app" src="/?render=force"></iframe>
+  <div id="hook"><div class="mask"><div class="l"><span>Son capital,</span></div></div><div class="mask"><div class="l"><span>c'est sa <em>vie.</em></span></div></div></div>
+  <div id="title" class="panel"><img src="/logo.png" alt=""><div class="word" id="w1"></div><div class="tag" id="t1">Un agent de trading autonome.</div></div>
+  <div class="cap bl" id="c-trade"><div class="mask"><div class="h">Il trade <em>seul.</em></div></div><div class="mask"><div class="s">LONG, SHORT, et un stop posé à chaque fois.</div></div></div>
+  <div class="cap tl" id="c-chat"><div class="mask"><div class="h">Tu lui <em>parles.</em></div></div><div class="mask"><div class="s">Il te répond en direct, comme sur une messagerie.</div></div></div>
+</template>
+
+<template id="tpl-appareils">
+  <div id="devs">
+    <div class="glow" id="g-mon"></div><div class="glow" id="g-tv"></div><div class="glow" id="g-ph"></div>
+    <div class="dev" id="tv"><div class="board"><i></i><i></i></div><div class="scr"><iframe id="a-tv" src="/?render=force"></iframe></div><div class="led"></div><div class="foot l"></div><div class="foot r"></div></div>
+    <div class="dev" id="mon"><div class="scr"><div class="win">
+      <div class="bb"><span class="dots"><i></i><i></i><i></i></span><span class="tabx"><img src="/favicon.png" alt="">RedRock</span><span class="url"><b>localhost</b>:8750</span></div>
+      <iframe id="a-pc" src="/?render=force"></iframe></div></div><div class="neck"></div><div class="base"></div></div>
+    <div class="dev" id="ph"><div class="body"><div class="scr">
+      <div id="home"><div class="grid" id="grid"></div><div class="dock" id="dock"></div></div>
+      <div id="pwa"><iframe id="a-tel" src="/?render=force"></iframe></div>
+      <div id="zoomer"><img src="/icon-512.png" alt=""></div>
+      <div id="sbar"><span>14:20</span><span>
+        <svg viewBox="0 0 64 13"><g fill="#fff"><rect x="0" y="9" width="3.4" height="4" rx="1"/><rect x="5" y="6" width="3.4" height="7" rx="1"/><rect x="10" y="3" width="3.4" height="10" rx="1"/><rect x="15" y="0" width="3.4" height="13" rx="1"/>
+        <path d="M30 12.6l-2.3-2.4a3.3 3.3 0 0 1 4.6 0zM25.6 8.1a6.4 6.4 0 0 1 8.8 0l-1.5 1.6a4.3 4.3 0 0 0-5.8 0zM23.4 5.8a9.6 9.6 0 0 1 13.2 0l-1.5 1.6a7.5 7.5 0 0 0-10.2 0z"/>
+        <rect x="41" y="1" width="20" height="11" rx="3" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="43" y="3" width="13" height="7" rx="1.5"/><rect x="62" y="4.5" width="1.6" height="4" rx=".8" fill-opacity=".5"/></g></svg></span></div>
+      <div id="island"></div><div id="hbar"></div>
+      <div id="finger"></div><div id="ring"></div>
+    </div></div></div>
+    <div class="dcap" id="d-pc"><div class="mask"><div class="k">NAVIGATEUR</div></div><div class="mask"><div class="h">Sur ton <em>PC.</em></div></div><div class="mask"><div class="s">L'app s'ouvre dans ton navigateur.</div></div></div>
+    <div class="dcap" id="d-tv"><div class="mask"><div class="k">MODE TV</div></div><div class="mask"><div class="h">Sur ta <em>TV.</em></div></div><div class="mask"><div class="s">La salle en plein écran, l'écran reste allumé.</div></div></div>
+    <div class="dcap" id="d-tel"><div class="mask"><div class="k">APPLI INSTALLÉE</div></div><div class="mask"><div class="h">Sur ton <em>téléphone.</em></div></div><div class="mask"><div class="s">Une icône sur l'écran d'accueil, comme une vraie app.</div></div></div>
+    <div id="trio-cap"><div class="mask"><div class="h">Le même agent, <em>partout.</em></div></div></div>
+    <div id="poster"><div class="brand"><img src="/logo.png" alt=""><b>REDROCK</b></div><div class="play"><i></i></div>
+      <div class="line">Un agent de trading <em>qui doit gagner sa vie.</em></div></div>
+  </div>
+</template>
+
+<template id="tpl-fin">
+  <iframe id="app" src="/?render=force"></iframe>
+  <div class="cap" id="c-mort" style="top: 620px"><div class="mask"><div class="h">S'il perd trop,</div></div><div class="mask"><div class="h"><em>il meurt.</em></div></div><div class="mask"><div class="s">−35 % depuis son plus haut : le broker l'arrête.</div></div></div>
+  <div class="cap tl" id="c-releve"><div class="mask"><div class="h">Le suivant</div></div><div class="mask"><div class="h"><em>prend la relève.</em></div></div><div class="mask"><div class="s">Il hérite des leçons de ses ancêtres.</div></div></div>
+  <div id="end" class="panel"><img src="/logo.png" alt=""><div class="word" id="w2"></div><div class="tag">Un agent de trading autonome qui doit gagner sa vie.</div>
+    <div class="pill">OPEN SOURCE</div><div class="url">github.com/ponthieutheo/redrock</div><div class="lic">Code MIT · personnage PolyForm Noncommercial</div></div>
+</template>
+
+<div id="fade"></div>
+</div>
+<script src="/media/comp.js"></script>
+<script>
+const {seg, clamp, E, $} = C;
+const PART = new URLSearchParams(location.search).get("part") || "salle";
+const POSTER = new URLSearchParams(location.search).get("poster") === "1";   // affiche du README (render.py --poster)
+// instants clés (s), partagés avec music.py (120 BPM : un temps = 0,5 s) ; chaque coupe tombe sur un temps
+const T = {titre: 2.0, salle: 4.0, chat: 6.0, appareils: 8.0, tv: 9.5, tel: 11.0, tap: 11.4, trio: 13.0, enjeu: 14.0, mort: 16.0, tombe: 17.6, releve: 18.0, fin: 20.0, dur: 22.0};
+const PARTS = {salle: [0, T.appareils], appareils: [T.appareils, T.enjeu], fin: [T.enjeu, T.dur]};
+{ const host = document.createElement("div"); host.className = "part"; host.id = "P-" + PART; host.style.display = "block";
+  host.appendChild($("tpl-" + PART).content.cloneNode(true)); $("stage").insertBefore(host, $("fade")); }
+
+// ---------- outils d'animation ----------
+const px = v => v.toFixed(2) + "px";
+function rows(el, t, a, b, stag = .06) {   // lignes qui montent d'un masque à `a`, repartent vers le haut à `b`
+  const vis = t >= a - 1e-6 && t < b + .3;
+  el.style.display = vis ? "block" : "none";
+  if (!vis) return;
+  [...el.querySelectorAll(".mask > *")].forEach((r, i) => {
+    const k = seg(t, a + i * stag, a + i * stag + .32, E.out4), o = seg(t, b + i * .03, b + i * .03 + .22, E.io);
+    r.style.transform = `translateY(${((1 - k) * 110 - o * 110).toFixed(1)}%)`; });
+}
+// plaque noire : s'ouvre de gauche à droite à `a`, ses lignes montent ; elle disparaît net à `b` (toujours une coupe
+// de plan : pas de fondu qui laisserait traîner une lamelle grise). Une ligne pas encore arrivée (rowsAt) ne prend
+// aucune place : la plaque grandit vers le bas quand elle arrive.
+function plate(el, t, a, b, rowsAt) {
+  const vis = t >= a - 1e-6 && t < b - 1e-6;
+  el.style.display = vis ? "block" : "none"; if (!vis) return;
+  const open = seg(t, a, a + .2, E.out4);
+  el.style.clipPath = `inset(0 ${((1 - open) * 100).toFixed(2)}% 0 0)`;
+  [...el.querySelectorAll(".mask > *")].forEach((r, i) => {
+    const at = rowsAt && rowsAt[i] != null ? rowsAt[i] : a + i * .04;
+    r.parentNode.style.display = t >= at - 1e-6 || !rowsAt ? "block" : "none";
+    const k = seg(t, at, at + .26, E.out4); r.style.transform = `translateY(${((1 - k) * 70).toFixed(1)}%)`; });
+}
+// cadrage de l'app (1280×720) : le point (ax, ay) de l'app est posé en (fx, fy) dans l'image, agrandi ×1,5×z
+function frameApp(el, ax, ay, fx, fy, z) {
+  const S = 1.5 * z;
+  el.style.transform = `translate(${px(fx - ax * S)}, ${px(fy - ay * S)}) scale(${S.toFixed(5)})`;
+}
+const HEAD = [656, 467];   // la tête du perso dans l'app 1280×720 (vue d'ensemble)
+const noTalk = (w, all) => C.noTalk(w, all);
+// logo et nom frappés sur le temps fort : visibles dès la première image, ils se posent en 0,3 s
+function slam(img, word, t, a) {
+  const k = seg(t, a, a + .3, E.out4);
+  img.style.transform = `scale(${(1.14 - .14 * k).toFixed(4)})`;
+  word.style.transform = `scale(${(1.08 - .08 * k).toFixed(4)})`;
+  word.style.letterSpacing = `${(.08 - .06 * k).toFixed(4)}em`;
+}
+
+// ---------- partie 1 : accroche, titre, la salle, le chat (0 → 8 s) ----------
+function partSalle() {
+  for (const id of ["w1"]) $(id).innerHTML = [..."REDROCK"].map(c => `<span>${c}</span>`).join("");
+  let W;
+  const Q = "Ta journée, ça va ?";
+  const run = C.timeline([
+    {t: 1.0, fn: () => C.emote(W, "wow")},
+    {t: 2.05, fn: () => { W.__zoom(false); W.__look.hold = 0; }},
+    {t: 3.0, fn: () => C.emote(W, "type")},
+    // coupe à 6 s : le chat est déjà ouvert (on avance l'horloge de l'app d'une seconde sur cette image)
+    {t: T.chat, fn: async () => { W.__chatOpen(); for (let i = 0; i < 6; i++) { C.step(W, 166.7); await C.wait(25); }
+                                  await C.until(() => W.document.querySelectorAll("#chat-log .msg").length >= 4, 3000);
+                                  for (let i = 0; i < 6; i++) { C.step(W, 166.7); await C.wait(10); } }},
+    {t: 6.45, fn: () => fetch("/__gate/on")},
+    {t: 6.5, fn: () => C.submit(W)},
+  ]);
+  return {
+    apps: ["app"], talkOk: [[T.chat, T.appareils]], cuts: [T.titre, T.salle, T.chat], moves: [[3.74, 4.02]],
+    async init() {
+      await C.ready("app", 9000);
+      W = C.win("app");
+      noTalk(W, false);
+      // chat ouvert à cette largeur : la pastille « Hyperliquid lu à … » de l'app chevauche la roue des réglages
+      C.css(W, ".top .sync { visibility: hidden !important; }");
+      // gros plan sur le visage, il nous regarde
+      W.__look.hold = Date.now() + 1e9; W.__look.tx = 0; W.__look.ty = 10;
+      W.__zoom(true, -.04, 4.6);
+      for (let i = 0; i < 120; i++) { W.__vt.tick(16.6666); if (i % 20 === 19) await C.wait(6); }
+    },
+    async frame(t, dt) {
+      await run(t);
+      if (t >= 6.05 && t < 6.45) C.typeInto(W, Q, Math.floor((t - 6.05) / .02) + 1);
+      if (t >= 6.62 && t < 7.7 && Math.round(t * 30) % 2 === 0) await C.release(W);
+      C.step(W, dt);
+      // accroche : app décalée à droite (le visage au centre de sa moitié), texte à gauche
+      const hk = t < T.titre;
+      $("hook").style.display = hk ? "flex" : "none";
+      if (hk) {
+        const ls = [...$("hook").querySelectorAll(".l span")];
+        // première ligne là dès la première image (elle se pose), la seconde monte sur le deuxième coup (1 s)
+        const k0 = seg(t, 0, .3, E.out4); ls[0].style.transform = `scale(${(1.08 - .08 * k0).toFixed(4)})`; ls[0].style.transformOrigin = "0 50%";
+        const k1 = seg(t, 1.0, 1.22, E.out4); ls[1].style.transform = `translateY(${((1 - k1) * 105).toFixed(1)}%)`;
+      }
+      // la salle : décalée pendant l'accroche, puis lente avancée sur le perso
+      if (t < T.titre) frameApp($("app"), 640, 360, 1360, 540, 1 + .03 * seg(t, 0, 2, E.lin));
+      else if (t < T.chat) frameApp($("app"), HEAD[0], HEAD[1], HEAD[0] * 1.5, HEAD[1] * 1.5, 1 + .05 * seg(t, T.salle, T.chat, E.lin));
+      else frameApp($("app"), 640, 360, 960, 540, 1);
+      // titre (2 → 4) : logo, nom, phrase ; s'en va vers le haut et découvre la salle à 4 s pile
+      const ti = t >= T.titre && t < T.salle;
+      $("title").style.display = ti ? "flex" : "none";
+      if (ti) {
+        slam($("title").querySelector("img"), $("w1"), t, T.titre);
+        const tg = seg(t, 2.5, 2.8, E.out4); $("t1").style.opacity = tg.toFixed(3); $("t1").style.transform = `translateY(${((1 - tg) * 24).toFixed(1)}px)`;
+        $("title").style.transform = `translateY(${(-seg(t, 3.75, 4.0, E.io) * 100).toFixed(2)}%)`;
+      }
+      plate($("c-trade"), t, T.salle + .05, T.chat);
+      plate($("c-chat"), t, T.chat + .02, T.appareils);
+    },
+  };
+}
+
+// ---------- partie 2 : PC, TV, téléphone (8 → 14 s) ----------
+function partAppareils() {
+  const ICONS = [["#3b2427", "circle"], ["#2c3138", "notes"], ["#4a3a1c", "sun"], ["#262a33", "clock"], ["#23352b", "map"], ["#3a2238", "music"],
+                 ["#1f3140", "bubble"], ["redrock"], ["#33302c", "gear"], ["#2f2a3f", "cam"], ["#3d2a22", "cal"], ["#24323a", "mail"]];
+  const NAMES = ["Photos", "Notes", "Météo", "Horloge", "Plans", "Musique", "Messages", "RedRock", "Réglages", "Caméra", "Calendrier", "Mail"];
+  const GLYPH = {
+    circle: '<circle cx="17" cy="17" r="10" fill="none" stroke="#e8d9d4" stroke-width="3"/>',
+    notes: '<rect x="8" y="7" width="18" height="21" rx="3" fill="none" stroke="#e8d9d4" stroke-width="2.6"/><path d="M12 14h10M12 19h7" stroke="#e8d9d4" stroke-width="2.4"/>',
+    sun: '<circle cx="17" cy="17" r="6" fill="#e8d9d4"/><path d="M17 4v4M17 26v4M4 17h4M26 17h4" stroke="#e8d9d4" stroke-width="2.4"/>',
+    clock: '<circle cx="17" cy="17" r="11" fill="none" stroke="#e8d9d4" stroke-width="2.6"/><path d="M17 10v7l5 3" stroke="#e8d9d4" stroke-width="2.4" fill="none"/>',
+    map: '<path d="M7 10l7-3 6 3 7-3v17l-7 3-6-3-7 3z" fill="none" stroke="#e8d9d4" stroke-width="2.4" stroke-linejoin="round"/>',
+    music: '<path d="M13 24V9l12-3v15" fill="none" stroke="#e8d9d4" stroke-width="2.6"/><circle cx="10.5" cy="24" r="3.4" fill="#e8d9d4"/><circle cx="22.5" cy="21" r="3.4" fill="#e8d9d4"/>',
+    bubble: '<path d="M6 10a4 4 0 0 1 4-4h14a4 4 0 0 1 4 4v9a4 4 0 0 1-4 4h-9l-6 5v-5a4 4 0 0 1-3-4z" fill="#e8d9d4"/>',
+    gear: '<circle cx="17" cy="17" r="5" fill="none" stroke="#e8d9d4" stroke-width="2.6"/><path d="M17 5v5M17 24v5M5 17h5M24 17h5M8.5 8.5l3.5 3.5M22 22l3.5 3.5M8.5 25.5l3.5-3.5M22 12l3.5-3.5" stroke="#e8d9d4" stroke-width="2.4"/>',
+    cam: '<rect x="5" y="10" width="24" height="17" rx="4" fill="none" stroke="#e8d9d4" stroke-width="2.6"/><circle cx="17" cy="18.5" r="4.6" fill="#e8d9d4"/>',
+    cal: '<rect x="6" y="8" width="22" height="20" rx="4" fill="none" stroke="#e8d9d4" stroke-width="2.6"/><path d="M6 14h22" stroke="#e8d9d4" stroke-width="2.4"/>',
+    mail: '<rect x="5" y="9" width="24" height="17" rx="3" fill="none" stroke="#e8d9d4" stroke-width="2.6"/><path d="M6 10l11 8 11-8" fill="none" stroke="#e8d9d4" stroke-width="2.4"/>',
+  };
+  const ico = (c, g, name) => c === "redrock" ? `<div class="ico" id="rr"><div class="sq"><img src="/icon-512.png" alt=""></div><span>${name}</span></div>`
+    : `<div class="ico"><div class="sq" style="background:${c}"><svg viewBox="0 0 34 34">${GLYPH[g]}</svg></div><span>${name}</span></div>`;
+  $("grid").innerHTML = ICONS.map((x, i) => ico(x[0], x[1], NAMES[i])).join("");
+  $("dock").innerHTML = [["#2a3a2c", "bubble"], ["#2c2e38", "mail"], ["#3a2a2a", "music"], ["#30303a", "cam"]].map(x => ico(x[0], x[1], "")).join("");
+  let P, V, M;   // fenêtres des trois apps : PC, TV, téléphone
+  // poses : [x du centre, y du centre, échelle] ; tailles naturelles : écran 1480×1048, TV 1628×990, téléphone 416×870
+  const SIZE = {mon: [1480, 1048], tv: [1628, 1110], ph: [416, 870]};
+  const FOCUS = {mon: [1250, 560, .78], tv: [1250, 560, .72], ph: [1250, 548, 1.0]};
+  const TRIO = {mon: [585, 640, .41], tv: [960, 440, .52], ph: [1395, 640, .56]};
+  const IN = {mon: T.appareils, tv: T.tv, ph: T.tel}, OUT = {mon: T.tv, tv: T.tel, ph: T.trio};
+  function pose(d, t) {
+    const f = FOCUS[d], tr = TRIO[d];
+    if (t >= T.trio - .02) {   // le trio : chacun rejoint sa place (le PC et la TV reviennent d'en bas)
+      const k = seg(t, T.trio + (d === "ph" ? 0 : d === "tv" ? .04 : .08), T.trio + .42 + (d === "ph" ? 0 : d === "tv" ? .04 : .08), E.out4);
+      const from = d === "ph" ? f : [tr[0], tr[1] + 760, tr[2]];
+      return {x: from[0] + (tr[0] - from[0]) * k, y: from[1] + (tr[1] - from[1]) * k, s: from[2] + (tr[2] - from[2]) * k, o: d === "ph" ? 1 : clamp(k * 3)};
+    }
+    // l'appareil suivant arrive pendant que le précédent s'en va : jamais d'image vide entre les deux
+    if (t < IN[d] - .07 || t >= OUT[d] + .1) return {o: 0};
+    const a = seg(t, IN[d] - .07, IN[d] + .3, E.back), z = d === "ph" ? 0 : seg(t, OUT[d] - .1, OUT[d] + .08, E.io);
+    return {x: f[0], y: f[1] + (1 - a) * 110 - z * 90, s: f[2] * (.92 + .08 * a) * (1 - .06 * z), o: (1 - z) * clamp(.75 + 2 * a)};
+  }
+  function place(d, t) {
+    const p = pose(d, t), el = $(d), g = $("g-" + d);
+    if (!p.o) { el.style.visibility = "hidden"; g.style.visibility = "hidden"; return; }
+    el.style.visibility = "visible"; g.style.visibility = "visible";
+    const [w, h] = SIZE[d];
+    el.style.transform = `translate(${px(p.x - w * p.s / 2)}, ${px(p.y - h * p.s / 2)}) scale(${p.s.toFixed(4)})`;
+    el.style.opacity = Math.min(1, p.o).toFixed(3);
+    g.style.transform = `translate(${px(p.x)}, ${px(p.y + h * p.s / 2 - 4)}) scale(${(p.s * w / 1400 * 1.1).toFixed(4)}, ${(p.s * 1.0).toFixed(4)})`;
+    g.style.opacity = (Math.min(1, p.o) * .9).toFixed(3);
+  }
+  const run = C.timeline([
+    {t: 8.15, fn: () => C.emote(P, "shades")},
+    {t: T.tv, fn: async () => { await fetch("/__scenario/fete"); await Promise.all([P, V, M].map(w => w.refresh(true))); }},
+  ]);
+  let rr = null;
+  return {
+    apps: ["a-pc", "a-tv", "a-tel"], talkOk: [], cuts: [T.appareils, T.tv, T.tel, T.trio], moves: [[T.tv - .15, T.tv + .3], [T.tel - .15, T.tel + .3], [T.tap, T.tap + .5], [T.trio, T.trio + .5]],
+    async init() {
+      await Promise.all(["a-pc", "a-tv", "a-tel"].map(id => C.ready(id, 6000)));
+      P = C.win("a-pc"); V = C.win("a-tv"); M = C.win("a-tel");
+      for (const w of [P, V, M]) noTalk(w, false);
+      C.css(M, ".pbtn .k { display: none !important; }");   // raccourcis clavier : propres à un ordinateur
+      await V.tvOn(false);
+      for (let i = 0; i < 12000 / 16.6666; i++) { for (const w of [P, V, M]) w.__vt.tick(16.6666); if (i % 20 === 19) await C.wait(6); }   // la TV : bouton « Quitter » parti, bandeau rempli
+      const r = $("rr").querySelector(".sq"), s = $("ph").querySelector(".scr").getBoundingClientRect(), b = r.getBoundingClientRect();
+      rr = {x: b.left - s.left, y: b.top - s.top, w: b.width, h: b.height};
+    },
+    async frame(t, dt) {
+      await run(t);
+      for (const w of [P, V, M]) C.step(w, dt);
+      for (const d of ["tv", "mon", "ph"]) place(d, t);
+      // téléphone : écran d'accueil, on touche l'icône, l'app s'ouvre depuis l'icône (écran de lancement), puis l'app
+      const tap = T.tap, fin = $("finger"), ring = $("ring");
+      const cx = rr.x + rr.w / 2, cy = rr.y + rr.h / 2;
+      for (const el of [fin, ring]) { el.style.left = px(cx); el.style.top = px(cy); }
+      const fa = seg(t, tap - .2, tap - .08), press = seg(t, tap - .06, tap + .04, E.io), gone = seg(t, tap + .06, tap + .2);
+      fin.style.opacity = (fa * (1 - gone)).toFixed(3); fin.style.transform = `scale(${(1.2 - .2 * fa - .2 * press + .3 * gone).toFixed(3)})`;
+      const rg = seg(t, tap, tap + .35, E.out); ring.style.opacity = (t > tap && t < tap + .35 ? 1 - rg : 0).toFixed(3); ring.style.transform = `scale(${(1 + rg * 1.8).toFixed(3)})`;
+      $("rr").querySelector(".sq").style.transform = `scale(${(1 - .1 * press * (1 - seg(t, tap + .04, tap + .14))).toFixed(3)})`;
+      const op = seg(t, tap + .04, tap + .42, E.out4), zm = $("zoomer");
+      zm.style.display = t >= tap + .04 && t < tap + .75 ? "block" : "none";
+      if (t >= tap + .04) {
+        const x = rr.x * (1 - op), y = rr.y * (1 - op), w = rr.w + (390 - rr.w) * op, h = rr.h + (844 - rr.h) * op;
+        Object.assign(zm.style, {left: px(x), top: px(y), width: px(w), height: px(h), borderRadius: px(15 + (54 - 15) * op),
+          opacity: (1 - seg(t, tap + .5, tap + .72)).toFixed(3)});
+        const isz = 62 + (128 - 62) * op; Object.assign(zm.querySelector("img").style, {width: px(isz), height: px(isz)});
+      }
+      $("pwa").style.opacity = seg(t, tap + .4, tap + .42).toFixed(3);
+      $("home").style.opacity = (1 - seg(t, tap + .38, tap + .42)).toFixed(3);
+      // textes
+      rows($("d-pc"), t, T.appareils, T.tv - .22);
+      rows($("d-tv"), t, T.tv + .02, T.tel - .22);
+      rows($("d-tel"), t, T.tel + .02, T.trio - .25);
+      if (POSTER) { $("poster").style.display = "block"; $("trio-cap").style.display = "none"; }
+      else rows($("trio-cap"), t, T.trio + .12, 99);
+    },
+  };
+}
+
+// ---------- partie 3 : l'enjeu, la mort, la relève, la carte de fin (14 → 22 s) ----------
+function partFin() {
+  $("w2").innerHTML = [..."REDROCK"].map(c => `<span>${c}</span>`).join("");
+  let W;
+  // [instant, agrandissement autour de la tête] : poussée pendant la panique, plan large à la mort, puis à la relève
+  const VIEW = [[T.enjeu, 1.0], [T.mort - .01, 1.18], [T.mort, 1.0], [T.releve - .01, 1.06], [T.releve, 1.0], [T.fin, 1.03]];
+  function zoom(t) {
+    for (let i = VIEW.length - 1; i >= 0; i--) if (t >= VIEW[i][0]) {
+      const a = VIEW[i], b = VIEW[i + 1]; if (!b || b[0] - a[0] < .02) return a[1];
+      return a[1] + (b[1] - a[1]) * (t - a[0]) / (b[0] - a[0]); }
+    return VIEW[0][1];
+  }
+  const run = C.timeline([
+    {t: T.enjeu, fn: () => C.emote(W, "panic")},
+    // la mort : la scène de mort de l'app (yeux en croix à 16 s pile, il vacille, s'affaisse, roule et disparaît)
+    {t: T.mort - .2, fn: () => W.__hatch()},
+    // la tombe qui surgit à 1,9 s de scène porte le numéro de la génération morte : l'app l'écrit d'après la
+    // génération suivante, qu'on lui donne juste avant (l'état complet de la génération 4 arrive à la coupe de 18 s)
+    {t: T.tombe, fn: () => { W.hatch = () => {}; W.__hc1 = Object.assign({}, W.__hc1, {generation: 4}); }},
+    // la relève : génération 4 en vie ; on avance la scène jusqu'à l'arrivée du remplaçant (coupe de plan)
+    {t: T.releve, fn: async () => {
+      await C.scenario(W, "naissance");
+      for (let i = 0; i < 2.2 * 60; i++) { W.__vt.tick(16.6666); if (i % 20 === 19) await C.wait(6); }
+    }},
+  ]);
+  return {
+    apps: ["app"], talkOk: [], cuts: [T.enjeu, T.mort, T.releve, T.fin], moves: [],
+    async init() {
+      await C.ready("app", 9000);
+      W = C.win("app");
+      noTalk(W, true);
+    },
+    async frame(t, dt) {
+      await run(t);
+      if (t >= T.tombe && t < T.tombe + .15 && W.__hc1 && W.__hc1.generation !== 4) W.__hc1 = Object.assign({}, W.__hc1, {generation: 4});
+      C.step(W, dt);
+      frameApp($("app"), HEAD[0], HEAD[1] - 40, HEAD[0] * 1.5, (HEAD[1] - 40) * 1.5, zoom(t));
+      plate($("c-mort"), t, T.enjeu + .03, T.releve, [T.enjeu + .07, T.mort, T.mort + .1]);
+      plate($("c-releve"), t, T.releve + .03, T.fin);
+      // carte de fin : coupe nette à 20 s sur le coup final
+      const on = t >= T.fin;
+      $("end").style.display = on ? "flex" : "none";
+      if (on) {
+        [...$("end").children].forEach((el, i) => { if (el.id === "w2" || i === 0) return; const k = seg(t, T.fin + .1 + i * .07, T.fin + .45 + i * .07, E.out4);
+          el.style.opacity = k.toFixed(3); el.style.transform = `translateY(${((1 - k) * 26).toFixed(1)}px)`; });
+        slam($("end").querySelector("img"), $("w2"), t, T.fin);
+      }
+    },
+  };
+}
+
+const IMPL = {salle: partSalle, appareils: partAppareils, fin: partFin}[PART]();
+window.COMP = {
+  part: PART, range: PARTS[PART], T,
+  apps: IMPL.apps, cuts: IMPL.cuts, moves: IMPL.moves,
+  init: () => IMPL.init(),
+  frame: (t, dt) => IMPL.frame(t, dt),
+  // contrôle de chaque image (render.py) : bulle de parole jamais, parole (bouche) seulement dans talkOk
+  probe: t => C.probe(IMPL.apps, t, IMPL.talkOk),
+};
+</script>
+</body></html>

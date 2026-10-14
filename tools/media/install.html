@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>RedRock : installation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #0c0304; --blood: #f0101c; --bone: #f6ebe6; --ash: #ad918c; --dust: #735955; --line: #2b1416; --bar: #1a0b0d; --gain: #3fcb7a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); color: var(--bone); font-family: 'Chakra Petch', sans-serif; }
+  .panel { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--ink); }
+  #title { gap: 22px; }
+  #title img { width: 150px; height: 150px; object-fit: contain; }
+  .big { font-weight: 700; font-size: 120px; line-height: 1; text-transform: uppercase; }
+  .big em { font-style: normal; color: var(--blood); }
+  .tag { font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 40px; color: var(--ash); }
+  /* terminal à plat */
+  #term { position: absolute; left: 80px; top: 100px; width: 1220px; height: 880px; background: #120607; border: 2px solid var(--line); border-radius: 14px; overflow: hidden; }
+  #term .bar { height: 50px; background: var(--bar); display: flex; align-items: center; gap: 12px; padding: 0 22px; font-weight: 600; font-size: 20px; color: var(--ash); letter-spacing: .04em; }
+  #term .bar i { width: 14px; height: 14px; background: var(--blood); display: inline-block; }
+  #screen { position: absolute; left: 0; right: 0; top: 50px; bottom: 0; padding: 22px 28px; overflow: hidden;
+            font-family: 'JetBrains Mono', monospace; font-size: 18px; line-height: 1.5; color: #e9dcd7; white-space: pre-wrap; overflow-wrap: anywhere;
+            font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+  #screen .b { font-weight: 700; color: #fff; } #screen .r { color: var(--blood); font-weight: 700; } #screen .g { color: var(--gain); } #screen .d { color: var(--dust); }
+  #screen .p { color: var(--blood); font-weight: 700; }
+  #screen .art { line-height: 1.12; }
+  #screen .cur { display: inline-block; width: .6em; height: 1.15em; vertical-align: -.2em; background: var(--bone); }
+  /* étapes à droite */
+  #steps { position: absolute; left: 1360px; top: 100px; width: 500px; }
+  #steps h3 { font-weight: 700; font-size: 26px; letter-spacing: .18em; color: var(--blood); margin-bottom: 26px; }
+  .st { display: grid; grid-template-columns: 54px 1fr; column-gap: 8px; margin-bottom: 18px; color: var(--dust); }
+  .st .n { font-weight: 700; font-size: 28px; line-height: 1.2; }
+  .st .t { font-weight: 700; font-size: 30px; line-height: 1.2; text-transform: uppercase; }
+  .st .note { grid-column: 2; font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 24px; line-height: 1.3; color: var(--ash); overflow: hidden; }
+  .st.done { color: var(--ash); } .st.done .n { color: var(--gain); }
+  .st.cur { color: var(--bone); } .st.cur .n { color: var(--blood); }
+  #hint { position: absolute; left: 1360px; bottom: 100px; width: 500px; font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 22px; color: var(--dust); line-height: 1.35; }
+  #hint b { color: var(--ash); font-weight: 600; }
+  /* navigateur à plat */
+  #browser { position: absolute; left: 140px; top: 60px; width: 1640px; height: 960px; background: var(--bar); border: 2px solid var(--line); border-radius: 14px; overflow: hidden; }
+  #browser .bar { height: 58px; display: flex; align-items: center; padding: 0 18px; gap: 14px; }
+  #browser .url { flex: 1; height: 38px; border-radius: 19px; background: var(--ink); display: flex; align-items: center; padding: 0 22px; font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 21px; color: var(--ash); }
+  #browser .url b { color: var(--bone); font-weight: 600; }
+  #browser .dot { width: 14px; height: 14px; background: var(--blood); }
+  #app { position: absolute; left: 0; top: 58px; width: 1280px; height: 704px; border: 0; transform-origin: 0 0; transform: scale(1.278125); }   /* 1280×704 agrandie : interface lisible */
+  .cap { position: absolute; left: 64px; bottom: 72px; background: var(--ink); padding: 30px 40px 34px; width: 640px; }
+  .cap .h { font-weight: 700; font-size: 62px; line-height: 1.02; text-transform: uppercase; }
+  .cap .h em { font-style: normal; color: var(--blood); }
+  .cap .s { font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 30px; line-height: 1.25; color: var(--ash); margin-top: 16px; }
+  .cap .row { overflow: hidden; } .cap .row > * { display: block; }
+  #end { gap: 24px; }
+  #end img { width: 140px; height: 140px; object-fit: contain; }
+  #end .cmd { font-family: 'JetBrains Mono', monospace; font-size: 34px; color: var(--bone); background: #120607; border: 2px solid var(--line); padding: 22px 34px; line-height: 1.6; }
+  #end .cmd span { color: var(--blood); font-weight: 700; }
+  #fade { position: absolute; inset: 0; background: var(--ink); opacity: 0; }
+</style></head>
+<body>
+<div id="term"><div class="bar"><i></i>Terminal · redrock</div><div id="screen"></div></div>
+<div id="steps"><h3>INSTALLATION</h3></div>
+<div id="hint">Une valeur <b>[entre crochets]</b> est proposée : la touche Entrée la garde.</div>
+<div id="browser"><div class="bar"><span class="dot"></span><div class="url"><b>127.0.0.1</b>:8750</div></div><iframe id="app" src="/?render=force"></iframe></div>
+<div class="cap" id="cap"><div class="row"><div class="h">C'est <em>prêt.</em></div></div><div class="row"><div class="s">Ton agent tourne chez toi, en simulation. Ouvre le lien d'appairage sur ton téléphone pour lui parler.</div></div></div>
+<div id="title" class="panel"><img src="/logo.png" alt=""><div class="big">Installer <em>RedRock</em></div><div class="tag">Une machine avec Docker, trois commandes.</div></div>
+<div id="end" class="panel"><img src="/logo.png" alt=""><div class="cmd"><span>$</span> git clone https://github.com/ponthieutheo/redrock.git<br><span>$</span> cd redrock<br><span>$</span> ./install.sh</div>
+  <div class="tag">github.com/ponthieutheo/redrock</div></div>
+<div id="fade"></div>
+<script src="/media/comp.js"></script>
+<script>
+const {seg, clamp, E, $} = C;
+// ---------- le script install.sh tel qu'il s'affiche (vrais textes de tools/public/install.sh ; clé et code masqués) ----------
+// Les lignes s'enchaînent : chaque appel avance l'horloge `at` (secondes). Types : cmd = commande tapée, out = ligne,
+// art = bannière, ask = question (Entrée à la fin), dots = attente. Balises : {b} gras, {r} rouge, {g} vert, {d} grisé, {/} fin.
+const CPS = 40;   // vitesse de frappe (caractères par seconde)
+const S = [], STEPS = [];
+let at = 2.2;
+const cmd = (text, gap = .22) => { S.push([at, "cmd", text]); at += text.length / CPS + .12 + gap; };
+const out = (text, gap = .1) => { S.push([at, "out", text]); at += gap; };
+const art = (text, gap = .04) => { S.push([at, "art", "{r}" + text + "{/}"]); at += gap; };
+const ask = (text, wait = .45) => { S.push([at, "ask", text, at + wait]); at += wait + .08; };
+const dots = (text, wait) => { S.push([at, "dots", text, at + wait]); at += wait + .1; };
+const step = (title, label, note) => { out(""); out(`{b}▸ ${title}{/}`, .16); if (label) STEPS.push([S[S.length - 2][0], label, note]); };
+const BANNER = ["   ____          _ ____            _", "  |  _ \\ ___  __| |  _ \\ ___   ___| | __", "  | |_) / _ \\/ _` | |_) / _ \\ / __| |/ /",
+  "  |  _ <  __/ (_| |  _ < (_) | (__|   <", "  |_| \\_\\___|\\__,_|_| \\_\\___/ \\___|_|\\_\\"];
+STEPS.push([at, "Récupère RedRock", "git clone, puis cd redrock."]);
+cmd("git clone https://github.com/ponthieutheo/redrock.git", .15);
+out("Clonage dans 'redrock'...", .3);
+out("Réception d'objets: 100% (96/96), 1.21 Mio | 8.40 Mio/s, fait.", .2);
+cmd("cd redrock", .1);
+STEPS.push([at, "Lance l'installation", "Le script vérifie Docker et pose ses questions."]);
+cmd("./install.sh", .3);
+BANNER.forEach(l => art(l));
+out("  Un agent de trading autonome qui doit gagner sa vie. Installation.", .2);
+step("Vérifications");
+out("  {g}✓{/} Docker et Docker Compose", .25);
+step("Cerveau de l'agent (fournisseur d'IA)", "Une clé d'IA", "OpenRouter par défaut. La clé tapée ne s'affiche pas.");
+out("  RedRock utilise OpenRouter par défaut (une clé, des centaines de modèles) : https://openrouter.ai/keys", .15);
+ask("  Clé OpenRouter (sk-or-…) : ", 1.0);
+ask("  Modèle [deepseek/deepseek-v4.1-flash] : ", .4);
+step("Argent réel ou simulation", "Simulation ou réel", "Commence en simulation : vrais prix, aucun risque.");
+out("  {b}simulation{/} : ordres simulés sur les vrais prix, aucun risque. {b}réel{/} : de vrais ordres sur Hyperliquid.", .15);
+ask("  Mode (paper = simulation, live = réel) [paper] : ", .5);
+ask("  Capital de départ simulé (en $) [100] : ", .4);
+step("Règle de mort", "La règle de mort", "−35 % depuis son plus haut. L'agent ne peut pas la changer.");
+out("  Le broker tue l'agent si son capital tombe trop loin sous son plus haut. L'agent ne peut pas changer cette règle.", .15);
+ask("  Perte maximale depuis le plus haut, en fraction (0.35 = 35 %) [0.35] : ", .55);
+step("Accès à l'app", "Accès à l'app", "Sur ta machine ; ton téléphone par un VPN privé (Tailscale, en option).");
+out("  Par défaut l'app n'écoute que sur cette machine (127.0.0.1). Pour ton téléphone, passe par un VPN privé", .05);
+out("  (Tailscale, WireGuard…) plutôt que d'ouvrir un port sur Internet : voir SECURITY.md.", .15);
+ask("  Adresse d'écoute [127.0.0.1] : ", .3);
+ask("  Port [8750] : ", .25);
+ask("  Fuseau horaire [Europe/Paris] : ", .3);
+out("", .05);
+out("  {b}Téléphone par Tailscale{/} (facultatif) : l'app s'ouvre en HTTPS sur ton réseau privé Tailscale, sans code,", .05);
+out("  pour ton compte Tailscale seulement. Le code d'accès continue de marcher partout (voir SECURITY.md).", .15);
+ask("  Accès depuis ton téléphone par Tailscale ? (o/N) [n] : ", .75);
+step("Génération de la configuration");
+out("  {g}✓{/} config/redrock.env, secrets/broker.env, config/chat.env, data/hermes/ (droits 600)", .2);
+out("  {g}✓{/} Code d'accès de l'app : 7c2e…(64 caractères)", .25);
+step("Démarrage", "Démarrage", "Trois conteneurs : le broker, l'agent, l'app.");
+out("{d}[+] Building 41.3s (18/18) FINISHED{/}", .25);
+out("{d}[+] Running 4/4{/}", .15);
+out("{d} ✔ Network redrock_redrock      Created{/}", .12);
+out("{d} ✔ Container redrock-broker-1  Started{/}", .12);
+out("{d} ✔ Container redrock-agent-1   Started{/}", .12);
+out("{d} ✔ Container redrock-dash-1    Started{/}", .15);
+dots("  attente de l'agent", .8);
+out("  {g}✓{/} broker, agent et app lancés", .2);
+step("Tâches planifiées de l'agent");
+out("  {g}✓{/} cycle-trading (every 60m)", .15);
+out("  {g}✓{/} revue-quotidienne (0 8 * * *)", .15);
+step("Surveillance de la mort et de la relève");
+out("  {g}✓{/} ops/watchdog.sh chaque minute (crontab)", .2);
+step("C'est prêt", "C'est prêt", "Ouvre l'adresse affichée, puis le lien d'appairage sur ton téléphone.");
+out("  App          : {b}http://127.0.0.1:8750{/}", .08);
+out("  Appairage    : ouvre une fois ce lien sur chaque appareil (il contient ton code d'accès, ne le partage pas)", .04);
+out("                 {b}http://127.0.0.1:8750/#cle=•••{/}", .08);
+out("  Téléphone    : Android (Chrome) menu ⋮ > « Installer l'application » ; iPhone (Safari) Partager > « Sur l'écran d'accueil ».", .06);
+out("  Autres appareils : dans l'app, Réglages > Appareils > Appairer (QR code).", .06);
+out("  Guide        : docs/usage.md   ·   Sécurité : SECURITY.md", .1);
+S.push([at, "prompt", ""]);
+// la suite se cale sur la fin du terminal : navigateur, légende, carte de fin
+const B0 = at + 1.1, CAP0 = B0 + 1.5, CAP1 = CAP0 + 4.4, END = CAP1, DUR = Math.ceil((END + 3.2) * 2) / 2;
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const fmt = s => esc(s).replace(/\{(b|r|g|d)\}/g, '<span class="$1">').replace(/\{\/\}/g, "</span>");
+const PROMPT = '<span class="p">$</span> ';
+function screenAt(t) {
+  const out = []; let cursor = false;
+  for (const [t0, kind, text, t1] of S) {
+    if (t < t0) break;
+    cursor = false;
+    if (kind === "out") out.push(fmt(text));
+    else if (kind === "art") out.push("\u0001" + fmt(text));   // bannière : interligne serré
+    else if (kind === "cmd") { const n = Math.floor((t - t0) * CPS), done = t >= t0 + text.length / CPS + .12;
+      out.push(PROMPT + esc(text.slice(0, n))); cursor = !done; }
+    else if (kind === "ask") { out.push(fmt(text)); cursor = t < t1; }
+    else if (kind === "dots") { out.push(fmt(text) + ".".repeat(Math.min(12, Math.floor((t - t0) / .07)))); cursor = t < t1; }
+    else if (kind === "prompt") { out.push(PROMPT); cursor = true; }
+  }
+  if (!out.length) { out.push(PROMPT); cursor = true; }
+  if (cursor && Math.floor(t * 2.2) % 2 === 0) out[out.length - 1] += '<span class="cur"></span>';
+  else if (cursor) out[out.length - 1] += '<span class="cur" style="opacity:0"></span>';
+  return out.map(l => l[0] === "\u0001" ? `<div class="art">${l.slice(1)}</div>` : `<div>${l || " "}</div>`).join("");
+}
+STEPS.forEach(([t0, title, note], i) => { const d = document.createElement("div"); d.className = "st";
+  d.innerHTML = `<div class="n">${String(i + 1).padStart(2, "0")}</div><div class="t">${title}</div><div class="note">${note}</div>`; $("steps").appendChild(d); });
+let W, lastHTML = "";
+window.COMP = {
+  dur: DUR, apps: ["app"], cuts: [B0, END], moves: [[1.9, 2.5], [B0, B0 + .8]],
+  async init() {
+    await C.ready("app", 1500);   // l'app attend, figée, que le navigateur s'ouvre
+    W = C.win("app");
+    C.noTalk(W, true);            // pas de bulle : il se met au travail (il lit son compte), la légende parle pour lui
+  },
+  async frame(t, dt) {
+    // titre (0 → 2,2)
+    $("title").style.display = t < 2.45 ? "flex" : "none";
+    if (t < 2.45) {
+      [...$("title").children].forEach((el, i) => { const k = i ? seg(t, .1 + i * .12, .5 + i * .12, E.out4) : 1;
+        el.style.opacity = k.toFixed(3); el.style.transform = `translateY(${((1 - k) * 34).toFixed(1)}px)`; });
+      $("title").style.transform = `translateY(${(-seg(t, 1.95, 2.3, E.io) * 100).toFixed(2)}%)`;
+    }
+    // terminal + étapes
+    const tin = seg(t, 1.6, 1.95, E.out4), away = 1 - seg(t, B0 + .1, B0 + .6);   // déjà là sous le titre quand il s'en va   // s'effacent quand le navigateur arrive
+    $("term").style.transform = `translateY(${((1 - tin) * 60).toFixed(1)}px)`; $("term").style.opacity = (tin * away).toFixed(3);
+    const html = screenAt(t); if (html !== lastHTML) { const sc = $("screen"); sc.innerHTML = html; sc.scrollTop = sc.scrollHeight; lastHTML = html; }   // comme un vrai terminal : remplit d'en haut, puis défile
+    const cur = STEPS.reduce((k, s, i) => t >= s[0] ? i : k, -1);
+    [...document.querySelectorAll(".st")].forEach((el, i) => {
+      el.className = "st" + (i < cur ? " done" : i === cur ? " cur" : "");
+      const k = i === cur ? seg(t, STEPS[i][0], STEPS[i][0] + .35, E.out4) : 0;
+      el.querySelector(".note").style.maxHeight = (k * 70).toFixed(1) + "px"; el.querySelector(".note").style.opacity = k.toFixed(3);
+      el.querySelector(".n").textContent = i < cur ? "✓" : String(i + 1).padStart(2, "0"); });
+    const sin = seg(t, 1.7, 2.0, E.out4);
+    $("steps").style.opacity = (sin * away).toFixed(3); $("hint").style.opacity = (seg(t, 6.0, 6.5) * away).toFixed(3);
+    // navigateur : l'app s'ouvre, première génération, il dit bonjour
+    const bin = seg(t, B0, B0 + .6, E.out4);
+    $("browser").style.display = t >= B0 ? "block" : "none";
+    $("browser").style.transform = `translateY(${((1 - bin) * 1100).toFixed(1)}px)`;
+    if (t >= B0) C.step(W, dt);
+    // légende
+    const cap = $("cap"), vis = t >= CAP0 && t < CAP1;
+    cap.style.display = vis ? "block" : "none";
+    if (vis) { const open = seg(t, CAP0, CAP0 + .22, E.out4);
+      cap.style.clipPath = `inset(0 ${((1 - open) * 100).toFixed(2)}% 0 0)`;
+      [...cap.querySelectorAll(".row > *")].forEach((r, i) => { const k = seg(t, CAP0 + i * .05, CAP0 + .3 + i * .05, E.out4); r.style.transform = `translateY(${((1 - k) * 70).toFixed(1)}%)`; }); }
+    // fin : coupe nette sur la carte (commandes + adresse)
+    $("end").style.display = t >= END ? "flex" : "none";
+    [...$("end").children].forEach((el, i) => { const k = i ? seg(t, END + .05 + i * .12, END + .4 + i * .12, E.out4) : 1; el.style.opacity = k.toFixed(3);
+      el.style.transform = `translateY(${((1 - k) * 20).toFixed(1)}px)`; });
+  },
+  // contrôle de chaque image (comme le teaser) : ni bulle ni bouche qui parle, 3D allumée, aucun « undefined »/« NaN »
+  probe: t => t < B0 ? {errs: [], st: []} : C.probe(["app"], t, []),
+};
+</script>
+</body></html>

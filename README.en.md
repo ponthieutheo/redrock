@@ -19,17 +19,11 @@
   <a href="LICENSES.md"><img src="https://img.shields.io/badge/media-CC%20BY--NC%204.0-lightgrey" alt="Media: CC BY-NC 4.0"></a>
 </p>
 
+https://github.com/user-attachments/assets/f052d4ff-7222-4c1e-bd21-9c66656a7bc9
+
 <p align="center">
   <img src="docs/media/scene-pc.png" alt="The 3D trading floor: RedRock at its desk, under its screens (capital, positions, survival, news)">
-</p>
-
-<p align="center">
-  <img src="docs/media/apercu.webp" width="720" alt="Tap the character, the chat opens, the /status command, a question, it answers">
-</p>
-
-<p align="center">
-  <b>Videos</b> (in French): <a href="docs/media/teaser.mp4">teaser (30 s)</a> · <a href="docs/media/installation.mp4">step-by-step install (40 s)</a>
-  <br><sub>Screenshots and videos use made-up data, in simulation mode.</sub>
+  <br><sub>The teaser (22 s, in French) and the 3D trading floor. Screenshots and videos use made-up data, in simulation mode.</sub>
 </p>
 
 ---
@@ -54,6 +48,10 @@ RedRock is an AI ([Hermes Agent](https://github.com/NousResearch/hermes-agent)) 
 - **It runs at home.** On a PC or a small always-on server, with Docker. Your keys never leave your machine.
 
 <p align="center">
+  <img src="docs/media/apercu.webp" width="720" alt="Tap the character, the chat opens, the /status command, a question, it answers">
+</p>
+
+<p align="center">
   <img src="docs/media/mort.png" width="720" alt="The handover: generation 3's tombstone, generation 4 drops in under the confetti">
 </p>
 
@@ -72,13 +70,18 @@ pairing link for your devices.
 The app and the guides are in French for now:
 step-by-step install **[docs/installation.md](docs/installation.md)** · usage **[docs/usage.md](docs/usage.md)**.
 
-## On your phone
+The install in 30 seconds:
 
-RedRock is an installable web app (PWA), no app store:
+https://github.com/user-attachments/assets/1373c1a6-af0e-4126-9951-142f84e1d82e
+
+## On all your screens
+
+RedRock is an installable web app (PWA), no app store: the same app on your PC, your TV and your phone.
 
 | Device | How |
 |---|---|
 | PC | open the app address in your browser (Chrome, Edge, Firefox, Safari) |
+| TV | open the app in the TV's browser (or a PC plugged into it), then Réglages → **Mode TV**: full screen, the screen stays on |
 | Android | Chrome, menu ⋮ → **Install app** |
 | iPhone / iPad | Safari, Share button → **Add to Home Screen** |
 
