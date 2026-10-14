@@ -618,7 +618,8 @@ th { color: var(--dust); font-weight: 500; font-size: 12px; }
 .tm-val { text-align: right; font-variant-numeric: tabular-nums; }
 .chatting .tm, .act-dead .tm { display: none !important; }
 canvas.three { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
-.tm-heart { position: absolute; z-index: 6; pointer-events: none; color: var(--blood); font-size: 18px; line-height: 1; animation: tmheart 1.6s ease-out forwards; }
+.tm-heart { position: absolute; z-index: 6; pointer-events: none; color: var(--blood); font-size: 26px; line-height: 1; animation: tmheart 1.6s ease-out forwards;
+  text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 1px 3px rgba(0,0,0,.35); }   /* contour blanc : lisible sur le perso rouge comme sur le décor */
 @keyframes tmheart { 0% { opacity: 0; transform: translateY(0) scale(.5); } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(-80px) scale(1.15); } }
 @keyframes tmthrob { 50% { transform: scale(1.25); } }
 @media (prefers-reduced-motion: reduce) { .tm-bar i, .tm-g { transition: none; } .tm-g.low svg { animation: none; } .tm-heart { display: none; } }
@@ -3158,8 +3159,13 @@ $("chat-wear").addEventListener("click", () => { const t = $("emote-tray").query
       const heart = () => {
         window.__buzz && window.__buzz(6); if (reduce) return;
         const h = document.createElement("div"); h.className = "tm-heart"; h.textContent = "♥";
-        h.style.left = (38 + Math.random() * 24) + "%"; h.style.top = (18 + Math.random() * 10) + "%";
-        document.getElementById("agent-wrap").appendChild(h); setTimeout(() => h.remove(), 1700);
+        const wrap = document.getElementById("agent-wrap"), hp = window.__headPx && window.__headPx();
+        if (hp && hp.rad > 0) {   // au-dessus de sa tête, là où elle est vraiment à l'écran (3D)
+          const r = wrap.getBoundingClientRect();
+          h.style.left = (hp.x - r.left + (Math.random() - .5) * hp.rad * 1.2) + "px";
+          h.style.top = (hp.y - r.top - hp.rad * (.55 + Math.random() * .25)) + "px";
+        } else { h.style.left = (38 + Math.random() * 24) + "%"; h.style.top = (18 + Math.random() * 10) + "%"; }
+        wrap.appendChild(h); setTimeout(() => h.remove(), 1700);
       };
       heart(); heartT = setInterval(heart, 480);
       window.__sfx && window.__sfx.boop && window.__sfx.boop(); say(IN[Math.floor(Math.random() * IN.length)]);

@@ -1,5 +1,5 @@
 /* HC-1 : service worker — appli installable, page disponible hors connexion, notifications push. */
-const CACHE = "hc1-v51";
+const CACHE = "hc1-v52";
 const SHELL = ["/", "/fx.js", "/character/redrock.js", "/character/face.js", "/character-libre/boulon.js", "/logo.png", "/icon-192.png", "/manifest.webmanifest"];
 
 // bibliothèques et polices embarquées (dash/vendor/) : plus aucun CDN ; les polices s'ajoutent au cache dès leur premier usage
