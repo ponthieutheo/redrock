@@ -12,7 +12,10 @@ Compte 10 minutes. Tu peux tout faire en simulation, sans argent réel ni compte
   Compte de l'ordre d'un à quelques dollars par jour selon le modèle.
 - Pour l'argent réel seulement : un compte [Hyperliquid](https://app.hyperliquid.xyz) (voir l'étape 4).
 
-Sous Windows, lance l'installation depuis WSL (Ubuntu) ou Git Bash, avec Docker Desktop démarré.
+Sous Windows, passe par **WSL** (Ubuntu) avec Docker Desktop démarré et son intégration WSL activée : clone
+RedRock dans ton dossier Linux (`~/redrock`, pas sous `/mnt/c`) et lance `./install.sh` depuis le terminal Ubuntu.
+Git Bash est déconseillé : il donne des identifiants d'utilisateur Windows (`id -u` = 197xxx) qui se retrouvent
+dans les droits des conteneurs, et il n'a pas de `crontab` pour la surveillance.
 
 ## 2. Récupérer RedRock
 
@@ -37,6 +40,7 @@ Le script pose quelques questions. Pour chacune, Entrée garde la valeur propos�
 | Capital simulé | 100 $ par exemple |
 | Perte maximale | 0.35 = il meurt s'il perd 35 % depuis son plus haut |
 | Adresse d'écoute, port | garde `127.0.0.1` et `8750` (voir [SECURITY.md](../SECURITY.md)) |
+| Accès depuis ton téléphone par Tailscale ? | Linux seulement, « n » par défaut. « o » : ton identifiant Tailscale (`toi@example.com`), puis le port HTTPS (443). Le téléphone ouvre l'app sans code ; voir l'étape 5 |
 
 Ensuite il génère la configuration, construit et lance les trois services, crée les tâches planifiées de
 l'agent (un cycle de trading par heure, une revue par jour) et installe la surveillance de la mort et de la
@@ -65,6 +69,21 @@ l'agent et le code d'accès de l'app sont gardés. Relancer `./install.sh` sans 
 Voir [usage.md](usage.md#sur-ton-téléphone). En bref : un réseau privé comme Tailscale, puis
 « Installer l'application » (Android) ou « Sur l'écran d'accueil » (iPhone).
 
+Si tu as répondu « o » à la question Tailscale, l'installateur affiche (et lance si tu veux) la commande qui
+relie Tailscale à l'app :
+
+```bash
+sudo tailscale serve --bg --https=443 unix:$PWD/data/sock/dash.sock
+```
+
+Ton téléphone ouvre alors l'adresse `https://…` de `tailscale serve status` sans code d'accès. C'est sûr parce
+que l'identité Tailscale n'est crue que par ce socket Unix, jamais par le port 8750 (détails dans
+[SECURITY.md](../SECURITY.md#connexion-sans-code-par-tailscale)). Pour revenir en arrière :
+`sudo tailscale serve --https=443 off`. Le code d'accès marche toujours.
+
+Sous Windows ou macOS (Docker Desktop), cette option n'est pas proposée : l'hôte ne peut pas ouvrir un socket
+créé dans un conteneur. Utilise le code d'accès avec `tailscale serve --bg 8750`.
+
 ## Commandes utiles
 
 | Pour | Commande |
@@ -86,6 +105,7 @@ Voir [usage.md](usage.md#sur-ton-téléphone). En bref : un réseau privé comme
 | `data/hermes/` | l'agent : mémoire, sessions, tâches planifiées, personnalité (`SOUL.md`) |
 | `data/lineage/` | les archives des générations mortes |
 | `data/dash/` | l'app : boîte de réception, notifications |
+| `data/sock/` | le socket de l'app pour `tailscale serve` (droits 700, rien à sauvegarder) |
 
 Sauvegarde ces dossiers avant toute manipulation. Pour tout désinstaller : `docker compose down`, puis
 supprime le dossier.

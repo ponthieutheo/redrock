@@ -6,27 +6,55 @@
  "alive": true,
  "graveyard": [],
  "deaths": 0,
- "verdicts": [],
+ "verdicts": [
+  {
+   "ts": "2026-10-08T22:00:00+00:00",
+   "text": "Point de contrôle n°1 passé : equity 101.20 $ >= 101.00 $"
+  },
+  {
+   "ts": "2026-10-09T22:00:00+00:00",
+   "text": "Point de contrôle n°2 passé : equity 102.41 $ >= 102.01 $"
+  },
+  {
+   "ts": "2026-10-10T22:00:00+00:00",
+   "text": "Point de contrôle n°3 passé : equity 103.64 $ >= 103.03 $"
+  },
+  {
+   "ts": "2026-10-11T22:00:00+00:00",
+   "text": "Point de contrôle n°4 passé : equity 104.89 $ >= 104.06 $"
+  }
+ ],
  "death_cause": null,
  "trajectory": {
+  "base": 100.0,
+  "born": 1791410400.0,
+  "n": 4,
+  "next_deadline": 1791842400.0,
+  "target": 104.0604,
+  "death_line": 88.8633,
+  "tolerance": 0.35,
   "mode": "drawdown",
   "peak": 136.7128,
-  "death_line": 88.8633,
-  "tolerance": 0.35
+  "days_ahead": 26.3739
  },
  "daily": {
-  "reference": 100.0,
-  "target": 101.0
+  "reference": 135.2873,
+  "deadline": 1791842400.0,
+  "target": 136.6402
  },
  "guard": {
   "freeze": null,
-  "events": []
+  "events": [],
+  "unrecorded": []
  },
  "mirror": {},
+ "signals": {
+  "news": []
+ },
  "equity": 135.2873,
  "start_equity": 100.0,
  "pnl_total": 35.2873,
- "drawdown_pct": -2.1,
+ "drawdown_pct": -1.0427,
  "born": "2026-10-07T22:00:00+00:00",
  "positions": [
   {
@@ -37,8 +65,22 @@
    "mark": 84160.0,
    "leverage": 3,
    "upnl": 1.14,
+   "margin": 33.28,
+   "liq": null,
+   "notional": 100.99,
    "sl": 81650.0,
    "tp": 87400.0,
+   "sl_at": "2026-10-11T22:00:00+00:00",
+   "tp_at": "2026-10-11T22:00:00+00:00",
+   "stop_moves": 0,
+   "last_move": null,
+   "warnings": [],
+   "sl_history": [
+    {
+     "level": 81650.0,
+     "ts": null
+    }
+   ],
    "thesis": "[setup:exemple] [src:cycle] Position fictive ouverte.",
    "opened_at": "2026-10-11T22:00:00+00:00"
   }
@@ -50,6 +92,8 @@
   "open": 1,
   "win_rate": 52.78,
   "realized": 4.1643,
+  "avg_win": 1.0161,
+  "avg_loss": -0.8906,
   "fees": 0.36,
   "funding": 0.0
  },
@@ -2141,648 +2185,1008 @@
    "gen": 1,
    "coin": "SOL",
    "side": "long",
-   "size": 3.2623,
-   "entry": 75.6691,
+   "size": 3.7736,
+   "entry": 65.5237,
    "leverage": 3,
    "opened_at": "2026-10-07T22:00:00+00:00",
+   "stop_loss": 63.558,
+   "take_profit": 69.4551,
    "closed_at": "2026-10-08T00:26:00+00:00",
    "exit": 20.7367,
    "pnl": -1.2329,
    "pnl_net": -1.2329,
+   "pnl_estimate": -1.2329,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°1."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°1.",
+   "stops_path": [
+    [
+     "2026-10-07T22:00:00+00:00",
+     63.558,
+     69.4551
+    ]
+   ]
   },
   {
    "id": 2,
    "gen": 1,
    "coin": "DOGE",
    "side": "long",
-   "size": 1.2003,
-   "entry": 47.8825,
+   "size": 2.3731,
+   "entry": 24.6159,
    "leverage": 3,
    "opened_at": "2026-10-08T00:00:00+00:00",
+   "stop_loss": 23.8774,
+   "take_profit": 26.0929,
    "closed_at": "2026-10-08T01:18:00+00:00",
    "exit": 56.833,
    "pnl": -1.7759,
    "pnl_net": -1.7759,
+   "pnl_estimate": -1.7759,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°2."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°2.",
+   "stops_path": [
+    [
+     "2026-10-08T00:00:00+00:00",
+     23.8774,
+     26.0929
+    ]
+   ]
   },
   {
    "id": 3,
    "gen": 1,
    "coin": "HYPE",
    "side": "short",
-   "size": 3.0402,
-   "entry": 75.0446,
+   "size": 3.7421,
+   "entry": 61.1175,
    "leverage": 3,
    "opened_at": "2026-10-08T02:00:00+00:00",
+   "stop_loss": 62.951,
+   "take_profit": 57.4504,
    "closed_at": "2026-10-08T03:18:00+00:00",
    "exit": 78.0014,
    "pnl": 0.2899,
    "pnl_net": 0.2899,
+   "pnl_estimate": 0.2899,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°3."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°3.",
+   "stops_path": [
+    [
+     "2026-10-08T02:00:00+00:00",
+     62.951,
+     57.4504
+    ]
+   ]
   },
   {
    "id": 4,
    "gen": 1,
    "coin": "SOL",
    "side": "long",
-   "size": 2.8976,
-   "entry": 92.9598,
+   "size": 4.6451,
+   "entry": 58.2898,
    "leverage": 3,
    "opened_at": "2026-10-08T04:00:00+00:00",
+   "stop_loss": 56.5411,
+   "take_profit": 61.7872,
    "closed_at": "2026-10-08T07:32:00+00:00",
    "exit": 40.2688,
    "pnl": -0.6437,
    "pnl_net": -0.6437,
+   "pnl_estimate": -0.6437,
    "fees": 0.01,
    "close_reason": "manual",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°4."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°4.",
+   "stops_path": [
+    [
+     "2026-10-08T04:00:00+00:00",
+     56.5411,
+     61.7872
+    ]
+   ]
   },
   {
    "id": 5,
    "gen": 1,
    "coin": "ETH",
    "side": "long",
-   "size": 1.2218,
-   "entry": 70.0221,
+   "size": 3.489,
+   "entry": 25.0421,
    "leverage": 3,
    "opened_at": "2026-10-08T06:00:00+00:00",
+   "stop_loss": 24.2908,
+   "take_profit": 26.5446,
    "closed_at": "2026-10-08T08:54:00+00:00",
    "exit": 85.179,
    "pnl": -2.0085,
    "pnl_net": -2.0085,
+   "pnl_estimate": -2.0085,
    "fees": 0.01,
    "close_reason": "manual",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°5."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°5.",
+   "stops_path": [
+    [
+     "2026-10-08T06:00:00+00:00",
+     24.2908,
+     26.5446
+    ]
+   ]
   },
   {
    "id": 6,
    "gen": 1,
    "coin": "AVAX",
    "side": "long",
-   "size": 3.9832,
-   "entry": 57.0273,
+   "size": 2.834,
+   "entry": 79.8265,
    "leverage": 3,
    "opened_at": "2026-10-08T08:00:00+00:00",
+   "stop_loss": 77.4317,
+   "take_profit": 84.6161,
    "closed_at": "2026-10-08T08:41:00+00:00",
    "exit": 35.3732,
    "pnl": -1.2428,
    "pnl_net": -1.2428,
+   "pnl_estimate": -1.2428,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°6."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°6.",
+   "stops_path": [
+    [
+     "2026-10-08T08:00:00+00:00",
+     77.4317,
+     84.6161
+    ]
+   ]
   },
   {
    "id": 7,
    "gen": 1,
    "coin": "LINK",
    "side": "short",
-   "size": 0.0731,
-   "entry": 42.5858,
+   "size": 2.1061,
+   "entry": 2.2526,
    "leverage": 3,
    "opened_at": "2026-10-08T10:00:00+00:00",
+   "stop_loss": 2.3202,
+   "take_profit": 2.1174,
    "closed_at": "2026-10-08T14:30:00+00:00",
    "exit": 11.4483,
    "pnl": 2.035,
    "pnl_net": 2.035,
+   "pnl_estimate": 2.035,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°7."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°7.",
+   "stops_path": [
+    [
+     "2026-10-08T10:00:00+00:00",
+     2.3202,
+     2.1174
+    ]
+   ]
   },
   {
    "id": 8,
    "gen": 1,
    "coin": "LINK",
    "side": "short",
-   "size": 3.5395,
-   "entry": 44.1132,
+   "size": 2.1831,
+   "entry": 71.0236,
    "leverage": 3,
    "opened_at": "2026-10-08T12:00:00+00:00",
+   "stop_loss": 73.1543,
+   "take_profit": 66.7622,
    "closed_at": "2026-10-08T16:47:00+00:00",
    "exit": 96.5819,
    "pnl": 1.0489,
    "pnl_net": 1.0489,
+   "pnl_estimate": 1.0489,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°8."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°8.",
+   "stops_path": [
+    [
+     "2026-10-08T12:00:00+00:00",
+     73.1543,
+     66.7622
+    ]
+   ]
   },
   {
    "id": 9,
    "gen": 1,
    "coin": "DOGE",
    "side": "short",
-   "size": 2.9664,
-   "entry": 32.9082,
+   "size": 1.6183,
+   "entry": 59.655,
    "leverage": 3,
    "opened_at": "2026-10-08T14:00:00+00:00",
+   "stop_loss": 61.4447,
+   "take_profit": 56.0757,
    "closed_at": "2026-10-08T16:25:00+00:00",
    "exit": 83.2424,
    "pnl": -2.3536,
    "pnl_net": -2.3536,
+   "pnl_estimate": -2.3536,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°9."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°9.",
+   "stops_path": [
+    [
+     "2026-10-08T14:00:00+00:00",
+     61.4447,
+     56.0757
+    ]
+   ]
   },
   {
    "id": 10,
    "gen": 1,
    "coin": "SOL",
    "side": "short",
-   "size": 1.2269,
-   "entry": 47.0061,
+   "size": 2.3289,
+   "entry": 25.1425,
    "leverage": 3,
    "opened_at": "2026-10-08T16:00:00+00:00",
+   "stop_loss": 25.8968,
+   "take_profit": 23.6339,
    "closed_at": "2026-10-08T19:34:00+00:00",
    "exit": 34.3033,
    "pnl": 0.7729,
    "pnl_net": 0.7729,
+   "pnl_estimate": 0.7729,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°10."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°10.",
+   "stops_path": [
+    [
+     "2026-10-08T16:00:00+00:00",
+     25.8968,
+     23.6339
+    ]
+   ]
   },
   {
    "id": 11,
    "gen": 1,
    "coin": "AVAX",
    "side": "short",
-   "size": 3.9912,
-   "entry": 34.6935,
+   "size": 1.7083,
+   "entry": 79.9854,
    "leverage": 3,
    "opened_at": "2026-10-08T18:00:00+00:00",
+   "stop_loss": 82.385,
+   "take_profit": 75.1863,
    "closed_at": "2026-10-08T20:41:00+00:00",
    "exit": 56.0233,
    "pnl": 0.6015,
    "pnl_net": 0.6015,
+   "pnl_estimate": 0.6015,
    "fees": 0.01,
    "close_reason": "manual",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°11."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°11.",
+   "stops_path": [
+    [
+     "2026-10-08T18:00:00+00:00",
+     82.385,
+     75.1863
+    ]
+   ]
   },
   {
    "id": 12,
    "gen": 1,
    "coin": "ETH",
    "side": "long",
-   "size": 1.2144,
-   "entry": 41.2364,
+   "size": 2.0381,
+   "entry": 24.8942,
    "leverage": 3,
    "opened_at": "2026-10-08T20:00:00+00:00",
+   "stop_loss": 24.1474,
+   "take_profit": 26.3879,
    "closed_at": "2026-10-08T22:23:00+00:00",
    "exit": 69.3703,
    "pnl": 1.0794,
    "pnl_net": 1.0794,
+   "pnl_estimate": 1.0794,
    "fees": 0.01,
    "close_reason": "manual",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°12."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°12.",
+   "stops_path": [
+    [
+     "2026-10-08T20:00:00+00:00",
+     24.1474,
+     26.3879
+    ]
+   ]
   },
   {
    "id": 13,
    "gen": 1,
    "coin": "LINK",
    "side": "short",
-   "size": 1.4782,
-   "entry": 41.0357,
+   "size": 2.028,
+   "entry": 30.1293,
    "leverage": 3,
    "opened_at": "2026-10-08T22:00:00+00:00",
+   "stop_loss": 31.0332,
+   "take_profit": 28.3215,
    "closed_at": "2026-10-09T00:24:00+00:00",
    "exit": 31.3144,
    "pnl": -0.0474,
    "pnl_net": -0.0474,
+   "pnl_estimate": -0.0474,
    "fees": 0.01,
    "close_reason": "manual",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°13."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°13.",
+   "stops_path": [
+    [
+     "2026-10-08T22:00:00+00:00",
+     31.0332,
+     28.3215
+    ]
+   ]
   },
   {
    "id": 14,
    "gen": 1,
    "coin": "SOL",
    "side": "short",
-   "size": 2.7718,
-   "entry": 35.032,
+   "size": 1.7253,
+   "entry": 55.7938,
    "leverage": 3,
    "opened_at": "2026-10-09T00:00:00+00:00",
+   "stop_loss": 57.4676,
+   "take_profit": 52.4462,
    "closed_at": "2026-10-09T03:09:00+00:00",
    "exit": 35.8292,
    "pnl": 0.2835,
    "pnl_net": 0.2835,
+   "pnl_estimate": 0.2835,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°14."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°14.",
+   "stops_path": [
+    [
+     "2026-10-09T00:00:00+00:00",
+     57.4676,
+     52.4462
+    ]
+   ]
   },
   {
    "id": 15,
    "gen": 1,
    "coin": "SOL",
    "side": "short",
-   "size": 0.971,
-   "entry": 12.8359,
+   "size": 0.6066,
+   "entry": 20.0658,
    "leverage": 3,
    "opened_at": "2026-10-09T02:00:00+00:00",
+   "stop_loss": 20.6678,
+   "take_profit": 18.8619,
    "closed_at": "2026-10-09T06:54:00+00:00",
    "exit": 95.1369,
    "pnl": 0.1937,
    "pnl_net": 0.1937,
+   "pnl_estimate": 0.1937,
    "fees": 0.01,
    "close_reason": "manual",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°15."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°15.",
+   "stops_path": [
+    [
+     "2026-10-09T02:00:00+00:00",
+     20.6678,
+     18.8619
+    ]
+   ]
   },
   {
    "id": 16,
    "gen": 1,
    "coin": "ETH",
    "side": "long",
-   "size": 1.0898,
-   "entry": 48.9357,
+   "size": 2.4262,
+   "entry": 22.4221,
    "leverage": 3,
    "opened_at": "2026-10-09T04:00:00+00:00",
+   "stop_loss": 21.7494,
+   "take_profit": 23.7674,
    "closed_at": "2026-10-09T08:48:00+00:00",
    "exit": 60.0823,
    "pnl": 0.9099,
    "pnl_net": 0.9099,
+   "pnl_estimate": 0.9099,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°16."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°16.",
+   "stops_path": [
+    [
+     "2026-10-09T04:00:00+00:00",
+     21.7494,
+     23.7674
+    ]
+   ]
   },
   {
    "id": 17,
    "gen": 1,
    "coin": "AVAX",
    "side": "long",
-   "size": 1.5183,
-   "entry": 71.0938,
+   "size": 3.543,
+   "entry": 30.9245,
    "leverage": 3,
    "opened_at": "2026-10-09T06:00:00+00:00",
+   "stop_loss": 29.9968,
+   "take_profit": 32.78,
    "closed_at": "2026-10-09T07:24:00+00:00",
    "exit": 28.1568,
    "pnl": -0.1795,
    "pnl_net": -0.1795,
+   "pnl_estimate": -0.1795,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°17."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°17.",
+   "stops_path": [
+    [
+     "2026-10-09T06:00:00+00:00",
+     29.9968,
+     32.78
+    ]
+   ]
   },
   {
    "id": 18,
    "gen": 1,
    "coin": "DOGE",
    "side": "short",
-   "size": 3.4901,
-   "entry": 13.5017,
+   "size": 0.6401,
+   "entry": 70.0443,
    "leverage": 3,
    "opened_at": "2026-10-09T08:00:00+00:00",
+   "stop_loss": 72.1456,
+   "take_profit": 65.8416,
    "closed_at": "2026-10-09T12:31:00+00:00",
    "exit": 11.1562,
    "pnl": 1.4692,
    "pnl_net": 1.4692,
+   "pnl_estimate": 1.4692,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°18."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°18.",
+   "stops_path": [
+    [
+     "2026-10-09T08:00:00+00:00",
+     72.1456,
+     65.8416
+    ]
+   ]
   },
   {
    "id": 19,
    "gen": 1,
    "coin": "DOGE",
    "side": "short",
-   "size": 0.93,
-   "entry": 6.0863,
+   "size": 0.2664,
+   "entry": 19.252,
    "leverage": 3,
    "opened_at": "2026-10-09T10:00:00+00:00",
+   "stop_loss": 19.8296,
+   "take_profit": 18.0969,
    "closed_at": "2026-10-09T14:24:00+00:00",
    "exit": 12.2946,
    "pnl": -1.2809,
    "pnl_net": -1.2809,
+   "pnl_estimate": -1.2809,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°19."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°19.",
+   "stops_path": [
+    [
+     "2026-10-09T10:00:00+00:00",
+     19.8296,
+     18.0969
+    ]
+   ]
   },
   {
    "id": 20,
    "gen": 1,
    "coin": "HYPE",
    "side": "short",
-   "size": 0.3797,
-   "entry": 63.3151,
+   "size": 3.1509,
+   "entry": 8.3341,
    "leverage": 3,
    "opened_at": "2026-10-09T12:00:00+00:00",
+   "stop_loss": 8.5841,
+   "take_profit": 7.8341,
    "closed_at": "2026-10-09T12:47:00+00:00",
    "exit": 16.021,
    "pnl": 0.4883,
    "pnl_net": 0.4883,
+   "pnl_estimate": 0.4883,
    "fees": 0.01,
    "close_reason": "manual",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°20."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°20.",
+   "stops_path": [
+    [
+     "2026-10-09T12:00:00+00:00",
+     8.5841,
+     7.8341
+    ]
+   ]
   },
   {
    "id": 21,
    "gen": 1,
    "coin": "SOL",
    "side": "long",
-   "size": 3.8246,
-   "entry": 61.0254,
+   "size": 3.0355,
+   "entry": 76.6799,
    "leverage": 3,
    "opened_at": "2026-10-09T14:00:00+00:00",
+   "stop_loss": 74.3795,
+   "take_profit": 81.2807,
    "closed_at": "2026-10-09T16:15:00+00:00",
    "exit": 77.7937,
    "pnl": 0.9025,
    "pnl_net": 0.9025,
+   "pnl_estimate": 0.9025,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°21."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°21.",
+   "stops_path": [
+    [
+     "2026-10-09T14:00:00+00:00",
+     74.3795,
+     81.2807
+    ]
+   ]
   },
   {
    "id": 22,
    "gen": 1,
    "coin": "HYPE",
    "side": "short",
-   "size": 1.4938,
-   "entry": 59.264,
+   "size": 2.9467,
+   "entry": 30.438,
    "leverage": 3,
    "opened_at": "2026-10-09T16:00:00+00:00",
+   "stop_loss": 31.3511,
+   "take_profit": 28.6117,
    "closed_at": "2026-10-09T19:59:00+00:00",
    "exit": 31.2326,
    "pnl": 0.1731,
    "pnl_net": 0.1731,
+   "pnl_estimate": 0.1731,
    "fees": 0.01,
    "close_reason": "manual",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°22."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°22.",
+   "stops_path": [
+    [
+     "2026-10-09T16:00:00+00:00",
+     31.3511,
+     28.6117
+    ]
+   ]
   },
   {
    "id": 23,
    "gen": 1,
    "coin": "BTC",
    "side": "long",
-   "size": 1.063,
-   "entry": 66.3824,
+   "size": 3.3055,
+   "entry": 21.8915,
    "leverage": 3,
    "opened_at": "2026-10-09T18:00:00+00:00",
+   "stop_loss": 21.2348,
+   "take_profit": 23.205,
    "closed_at": "2026-10-09T19:40:00+00:00",
    "exit": 24.7467,
    "pnl": 1.1042,
    "pnl_net": 1.1042,
+   "pnl_estimate": 1.1042,
    "fees": 0.01,
    "close_reason": "manual",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°23."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°23.",
+   "stops_path": [
+    [
+     "2026-10-09T18:00:00+00:00",
+     21.2348,
+     23.205
+    ]
+   ]
   },
   {
    "id": 24,
    "gen": 1,
    "coin": "BTC",
    "side": "long",
-   "size": 0.0234,
-   "entry": 45.5999,
+   "size": 2.258,
+   "entry": 1.2649,
    "leverage": 3,
    "opened_at": "2026-10-09T20:00:00+00:00",
+   "stop_loss": 1.227,
+   "take_profit": 1.3408,
    "closed_at": "2026-10-10T00:20:00+00:00",
    "exit": 29.8347,
    "pnl": -0.109,
    "pnl_net": -0.109,
+   "pnl_estimate": -0.109,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°24."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°24.",
+   "stops_path": [
+    [
+     "2026-10-09T20:00:00+00:00",
+     1.227,
+     1.3408
+    ]
+   ]
   },
   {
    "id": 25,
    "gen": 1,
    "coin": "SOL",
    "side": "short",
-   "size": 3.4401,
-   "entry": 92.4672,
+   "size": 4.6203,
+   "entry": 69.0511,
    "leverage": 3,
    "opened_at": "2026-10-09T22:00:00+00:00",
+   "stop_loss": 71.1226,
+   "take_profit": 64.908,
    "closed_at": "2026-10-10T00:01:00+00:00",
    "exit": 43.0888,
    "pnl": -0.2484,
    "pnl_net": -0.2484,
+   "pnl_estimate": -0.2484,
    "fees": 0.01,
    "close_reason": "manual",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°25."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°25.",
+   "stops_path": [
+    [
+     "2026-10-09T22:00:00+00:00",
+     71.1226,
+     64.908
+    ]
+   ]
   },
   {
    "id": 26,
    "gen": 1,
    "coin": "ETH",
    "side": "long",
-   "size": 4.543,
-   "entry": 82.8365,
+   "size": 4.1349,
+   "entry": 90.9327,
    "leverage": 3,
    "opened_at": "2026-10-10T00:00:00+00:00",
+   "stop_loss": 88.2047,
+   "take_profit": 96.3887,
    "closed_at": "2026-10-10T00:56:00+00:00",
    "exit": 6.9042,
    "pnl": -1.2735,
    "pnl_net": -1.2735,
+   "pnl_estimate": -1.2735,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°26."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°26.",
+   "stops_path": [
+    [
+     "2026-10-10T00:00:00+00:00",
+     88.2047,
+     96.3887
+    ]
+   ]
   },
   {
    "id": 27,
    "gen": 1,
    "coin": "DOGE",
    "side": "short",
-   "size": 1.5274,
-   "entry": 40.8483,
+   "size": 2.0185,
+   "entry": 31.105,
    "leverage": 3,
    "opened_at": "2026-10-10T02:00:00+00:00",
+   "stop_loss": 32.0382,
+   "take_profit": 29.2387,
    "closed_at": "2026-10-10T04:39:00+00:00",
    "exit": 50.5467,
    "pnl": -1.2608,
    "pnl_net": -1.2608,
+   "pnl_estimate": -1.2608,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°27."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°27.",
+   "stops_path": [
+    [
+     "2026-10-10T02:00:00+00:00",
+     32.0382,
+     29.2387
+    ]
+   ]
   },
   {
    "id": 28,
    "gen": 1,
    "coin": "HYPE",
    "side": "long",
-   "size": 2.9942,
-   "entry": 89.0529,
+   "size": 4.4482,
+   "entry": 60.2056,
    "leverage": 3,
    "opened_at": "2026-10-10T04:00:00+00:00",
+   "stop_loss": 58.3994,
+   "take_profit": 63.8179,
    "closed_at": "2026-10-10T07:05:00+00:00",
    "exit": 60.7677,
    "pnl": 0.7874,
    "pnl_net": 0.7874,
+   "pnl_estimate": 0.7874,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°28."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°28.",
+   "stops_path": [
+    [
+     "2026-10-10T04:00:00+00:00",
+     58.3994,
+     63.8179
+    ]
+   ]
   },
   {
    "id": 29,
    "gen": 1,
    "coin": "BTC",
    "side": "long",
-   "size": 2.8802,
-   "entry": 95.1278,
+   "size": 4.7544,
+   "entry": 57.9447,
    "leverage": 3,
    "opened_at": "2026-10-10T06:00:00+00:00",
+   "stop_loss": 56.2064,
+   "take_profit": 61.4214,
    "closed_at": "2026-10-10T08:37:00+00:00",
    "exit": 58.0485,
    "pnl": 2.7861,
    "pnl_net": 2.7861,
+   "pnl_estimate": 2.7861,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°29."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°29.",
+   "stops_path": [
+    [
+     "2026-10-10T06:00:00+00:00",
+     56.2064,
+     61.4214
+    ]
+   ]
   },
   {
    "id": 30,
    "gen": 1,
    "coin": "HYPE",
    "side": "short",
-   "size": 4.5812,
-   "entry": 18.9674,
+   "size": 0.9156,
+   "entry": 91.6912,
    "leverage": 3,
    "opened_at": "2026-10-10T08:00:00+00:00",
+   "stop_loss": 94.4419,
+   "take_profit": 86.1897,
    "closed_at": "2026-10-10T12:03:00+00:00",
    "exit": 63.8437,
    "pnl": -0.431,
    "pnl_net": -0.431,
+   "pnl_estimate": -0.431,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°30."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°30.",
+   "stops_path": [
+    [
+     "2026-10-10T08:00:00+00:00",
+     94.4419,
+     86.1897
+    ]
+   ]
   },
   {
    "id": 31,
    "gen": 1,
    "coin": "BTC",
    "side": "short",
-   "size": 3.354,
-   "entry": 85.9156,
+   "size": 4.2901,
+   "entry": 67.3432,
    "leverage": 3,
    "opened_at": "2026-10-10T10:00:00+00:00",
+   "stop_loss": 69.3635,
+   "take_profit": 63.3026,
    "closed_at": "2026-10-10T13:08:00+00:00",
    "exit": 41.7529,
    "pnl": -0.5279,
    "pnl_net": -0.5279,
+   "pnl_estimate": -0.5279,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°31."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°31.",
+   "stops_path": [
+    [
+     "2026-10-10T10:00:00+00:00",
+     69.3635,
+     63.3026
+    ]
+   ]
   },
   {
    "id": 32,
    "gen": 1,
    "coin": "SOL",
    "side": "short",
-   "size": 4.0697,
-   "entry": 55.4596,
+   "size": 2.755,
+   "entry": 81.543,
    "leverage": 3,
    "opened_at": "2026-10-10T12:00:00+00:00",
+   "stop_loss": 83.9893,
+   "take_profit": 76.6504,
    "closed_at": "2026-10-10T16:12:00+00:00",
    "exit": 9.7179,
    "pnl": 1.2293,
    "pnl_net": 1.2293,
+   "pnl_estimate": 1.2293,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°32."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°32.",
+   "stops_path": [
+    [
+     "2026-10-10T12:00:00+00:00",
+     83.9893,
+     76.6504
+    ]
+   ]
   },
   {
    "id": 33,
    "gen": 1,
    "coin": "SOL",
    "side": "long",
-   "size": 2.5778,
-   "entry": 98.8238,
+   "size": 4.9407,
+   "entry": 51.945,
    "leverage": 3,
    "opened_at": "2026-10-10T14:00:00+00:00",
+   "stop_loss": 50.3866,
+   "take_profit": 55.0617,
    "closed_at": "2026-10-10T18:57:00+00:00",
    "exit": 46.7357,
    "pnl": 1.5998,
    "pnl_net": 1.5998,
+   "pnl_estimate": 1.5998,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°33."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°33.",
+   "stops_path": [
+    [
+     "2026-10-10T14:00:00+00:00",
+     50.3866,
+     55.0617
+    ]
+   ]
   },
   {
    "id": 34,
    "gen": 1,
    "coin": "ETH",
    "side": "short",
-   "size": 3.1169,
-   "entry": 50.3508,
+   "size": 2.4975,
+   "entry": 62.6408,
    "leverage": 3,
    "opened_at": "2026-10-10T16:00:00+00:00",
+   "stop_loss": 64.52,
+   "take_profit": 58.8824,
    "closed_at": "2026-10-10T20:06:00+00:00",
    "exit": 76.2391,
    "pnl": -0.0653,
    "pnl_net": -0.0653,
+   "pnl_estimate": -0.0653,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°34."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°34.",
+   "stops_path": [
+    [
+     "2026-10-10T16:00:00+00:00",
+     64.52,
+     58.8824
+    ]
+   ]
   },
   {
    "id": 35,
    "gen": 1,
    "coin": "SOL",
    "side": "long",
-   "size": 3.4943,
-   "entry": 13.0212,
+   "size": 0.6159,
+   "entry": 70.1268,
    "leverage": 3,
    "opened_at": "2026-10-10T18:00:00+00:00",
+   "stop_loss": 68.023,
+   "take_profit": 74.3344,
    "closed_at": "2026-10-10T20:22:00+00:00",
    "exit": 71.2685,
    "pnl": 1.5507,
    "pnl_net": 1.5507,
+   "pnl_estimate": 1.5507,
    "fees": 0.01,
    "close_reason": "stop_loss",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°35."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°35.",
+   "stops_path": [
+    [
+     "2026-10-10T18:00:00+00:00",
+     68.023,
+     74.3344
+    ]
+   ]
   },
   {
    "id": 36,
    "gen": 1,
    "coin": "DOGE",
    "side": "long",
-   "size": 2.7657,
-   "entry": 10.2277,
+   "size": 0.4751,
+   "entry": 55.6729,
    "leverage": 3,
    "opened_at": "2026-10-10T20:00:00+00:00",
+   "stop_loss": 54.0027,
+   "take_profit": 59.0133,
    "closed_at": "2026-10-10T21:18:00+00:00",
    "exit": 46.6833,
    "pnl": -0.4599,
    "pnl_net": -0.4599,
+   "pnl_estimate": -0.4599,
    "fees": 0.01,
    "close_reason": "take_profit",
    "status": "closed",
-   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°36."
+   "thesis": "[setup:exemple] [src:cycle] Raison fictive n°36.",
+   "stops_path": [
+    [
+     "2026-10-10T20:00:00+00:00",
+     54.0027,
+     59.0133
+    ]
+   ]
   },
   {
    "id": 37,
@@ -2792,9 +3196,13 @@
    "size": 0.0012,
    "entry": 83210.0,
    "leverage": 3,
+   "stop_loss": 81650.0,
+   "take_profit": 87400.0,
    "opened_at": "2026-10-11T22:00:00+00:00",
    "status": "open",
-   "thesis": "[setup:exemple] [src:cycle] Position fictive ouverte."
+   "pnl": null,
+   "thesis": "[setup:exemple] [src:cycle] Position fictive ouverte.",
+   "stops_path": []
   }
  ],
  "journal": [
@@ -2954,31 +3362,46 @@
    "id": 1,
    "gen": 1,
    "ts": "2026-10-07T22:00:00+00:00",
-   "lesson": "Leçon fictive n°1."
+   "lesson": "Leçon fictive n°1.",
+   "evidence": "",
+   "confirmed": 3,
+   "contradicted": 0
   },
   {
    "id": 2,
    "gen": 1,
    "ts": "2026-10-08T22:00:00+00:00",
-   "lesson": "Leçon fictive n°2."
+   "lesson": "Leçon fictive n°2.",
+   "evidence": "",
+   "confirmed": 2,
+   "contradicted": 1
   },
   {
    "id": 3,
    "gen": 1,
    "ts": "2026-10-09T22:00:00+00:00",
-   "lesson": "Leçon fictive n°3."
+   "lesson": "Leçon fictive n°3.",
+   "evidence": "",
+   "confirmed": 1,
+   "contradicted": 0
   },
   {
    "id": 4,
    "gen": 1,
    "ts": "2026-10-10T22:00:00+00:00",
-   "lesson": "Leçon fictive n°4."
+   "lesson": "Leçon fictive n°4.",
+   "evidence": "",
+   "confirmed": 3,
+   "contradicted": 1
   },
   {
    "id": 5,
    "gen": 1,
    "ts": "2026-10-11T22:00:00+00:00",
-   "lesson": "Leçon fictive n°5."
+   "lesson": "Leçon fictive n°5.",
+   "evidence": "",
+   "confirmed": 2,
+   "contradicted": 0
   }
  ],
  "jobs": [

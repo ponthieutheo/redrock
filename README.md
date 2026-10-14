@@ -19,8 +19,18 @@
   <a href="LICENSES.md"><img src="https://img.shields.io/badge/m%C3%A9dias-CC%20BY--NC%204.0-lightgrey" alt="Médias : CC BY-NC 4.0"></a>
 </p>
 
-<!-- CAPTURE : la salle des marchés en 3D, le perso au premier plan (docs/media/scene.png) -->
-<!-- GIF : toucher le perso, le chat en appel, une commande /status (docs/media/chat.gif) -->
+<p align="center">
+  <img src="docs/media/scene-pc.png" alt="La salle des marchés en 3D : RedRock à son bureau, sous ses écrans (capital, positions, survie, actus)">
+</p>
+
+<p align="center">
+  <img src="docs/media/apercu.webp" width="720" alt="On touche le perso, le chat s'ouvre, la commande /status, une question, il répond">
+</p>
+
+<p align="center">
+  <b>Vidéos</b> : <a href="docs/media/teaser.mp4">le teaser (30 s)</a> · <a href="docs/media/installation.mp4">l'installation pas à pas (40 s)</a>
+  <br><sub>Images et vidéos tournées sur des données inventées, en simulation.</sub>
+</p>
 
 ---
 
@@ -43,6 +53,10 @@ perpétuels d'[Hyperliquid](https://hyperliquid.xyz), avec une règle simple : *
 - **Tout passe par l'app.** Commandes, notifications des tâches planifiées, alertes : pas besoin de Telegram.
 - **Ça tourne chez toi.** Sur un PC ou un petit serveur allumé en continu, avec Docker. Tes clés ne quittent
   pas ta machine.
+
+<p align="center">
+  <img src="docs/media/mort.png" width="720" alt="La relève : la tombe de la génération 3, la génération 4 tombe du plafond sous les confettis">
+</p>
 
 ## Démarrage rapide
 
@@ -69,7 +83,14 @@ RedRock est une app web installable (PWA), sans store :
 | iPhone / iPad | Safari, bouton Partager → **Sur l'écran d'accueil** |
 
 Le premier appareil s'appaire avec le lien affiché par l'installation ; les suivants avec le QR code
-(Réglages → Appareils → Appairer).
+(Réglages → Appareils → Appairer). Sur Linux avec [Tailscale](https://tailscale.com), l'installateur peut aussi
+ouvrir l'app à ton téléphone **sans code** : ton compte Tailscale sert de clé ([docs/usage.md](docs/usage.md#sur-ton-téléphone)).
+
+<p align="center">
+  <img src="docs/media/scene-tel.png" width="270" alt="L'app sur téléphone : les écrans au-dessus, le perso en bas">
+  &nbsp;
+  <img src="docs/media/chat-tel.png" width="270" alt="Le chat sur téléphone : la commande /status et une réponse de l'agent">
+</p>
 
 ## Comment c'est construit
 
@@ -91,7 +112,8 @@ Le premier appareil s'appaire avec le lien affiché par l'installation ; les sui
 - **agent** : l'image officielle `nousresearch/hermes-agent`, avec une personnalité de départ
   ([agent/SOUL.md](agent/SOUL.md)) et deux tâches planifiées (un cycle de trading par heure, une revue par jour).
 - **dash** (`dash/`) : l'app. Le personnage vit à part dans `dash/character/` et se remplace par un autre via un
-  contrat documenté ([docs/personnage.md](docs/personnage.md)).
+  contrat documenté ([docs/personnage.md](docs/personnage.md)) ; Boulon, un personnage libre, est fourni dans
+  `dash/character-libre/`.
 
 ## Sécurité
 
@@ -102,5 +124,6 @@ QR code), et la clé de trading n'est lue que par le broker. Avant d'ouvrir l'ac
 ## Licences
 
 Le code est sous **MIT**. Le personnage RedRock (`dash/character/`) est sous **PolyForm Noncommercial 1.0.0** :
-gratuit pour tout usage non commercial. Les médias (logo, icônes, vidéos) sont sous **CC BY-NC 4.0**. Le détail
+gratuit pour tout usage non commercial ; pour un usage commercial, prends **Boulon** (`dash/character-libre/`, MIT,
+`CHARACTER=libre`). Les médias (logo, icônes, vidéos) sont sous **CC BY-NC 4.0**. Le détail
 est dans [LICENSES.md](LICENSES.md).

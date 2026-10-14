@@ -18,11 +18,30 @@ Ouvre l'adresse de l'app dans ton navigateur (`http://127.0.0.1:8750` par défau
 L'app doit être joignable depuis le téléphone **sans l'ouvrir sur Internet** : le plus simple est
 [Tailscale](https://tailscale.com).
 
-1. Installe Tailscale sur la machine de RedRock et sur ton téléphone, avec le même compte.
-2. Sur la machine : `tailscale serve --bg 8750`. Tailscale affiche une adresse `https://…` privée.
-3. Sur le téléphone, ouvre le **lien d'appairage** avec cette adresse : `https://…/#cle=<ton code>`
+Installe Tailscale sur la machine de RedRock et sur ton téléphone, avec le même compte. Ensuite, deux façons :
+
+**A. Sans code, par ton compte Tailscale** (machine Linux, le plus simple au quotidien)
+
+1. Réponds « o » à la question « Accès depuis ton téléphone par Tailscale ? » de `./install.sh` (ou relance-le),
+   et donne ton identifiant Tailscale (`toi@example.com`, `pseudo@github`…).
+2. L'installateur affiche la commande, et la lance si tu le veux :
+   `sudo tailscale serve --bg --https=443 unix:<dossier de RedRock>/data/sock/dash.sock`.
+   `tailscale serve status` affiche l'adresse `https://…` privée.
+3. Sur le téléphone, ouvre cette adresse : le chat et les commandes marchent sans code, pour les comptes listés
+   dans `TS_LOGINS` (`config/chat.env`) seulement. Pourquoi c'est sûr : [SECURITY.md](../SECURITY.md#connexion-sans-code-par-tailscale).
+
+Revenir en arrière : `sudo tailscale serve --https=443 off`, puis vide `TS_LOGINS` dans `config/chat.env` et
+`docker compose up -d dash`. Le code d'accès marche toujours, avec ou sans cette option.
+
+**B. Avec le code d'accès** (partout, y compris Windows et macOS)
+
+1. Sur la machine : `tailscale serve --bg 8750`. Tailscale affiche une adresse `https://…` privée.
+2. Sur le téléphone, ouvre le **lien d'appairage** avec cette adresse : `https://…/#cle=<ton code>`
    (le code est `CHAT_KEY` dans `config/chat.env` ; `python3 ops/pair.py https://…` affiche le lien complet).
-4. Installe l'app :
+
+Sur un même port HTTPS, c'est l'une ou l'autre : la dernière commande `tailscale serve` remplace la précédente.
+
+Puis installe l'app :
 
 | Téléphone | Comment |
 |---|---|

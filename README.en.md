@@ -19,8 +19,18 @@
   <a href="LICENSES.md"><img src="https://img.shields.io/badge/media-CC%20BY--NC%204.0-lightgrey" alt="Media: CC BY-NC 4.0"></a>
 </p>
 
-<!-- SCREENSHOT: the 3D trading floor, the character in front (docs/media/scene.png) -->
-<!-- GIF: tap the character, the call-style chat, a /status command (docs/media/chat.gif) -->
+<p align="center">
+  <img src="docs/media/scene-pc.png" alt="The 3D trading floor: RedRock at its desk, under its screens (capital, positions, survival, news)">
+</p>
+
+<p align="center">
+  <img src="docs/media/apercu.webp" width="720" alt="Tap the character, the chat opens, the /status command, a question, it answers">
+</p>
+
+<p align="center">
+  <b>Videos</b> (in French): <a href="docs/media/teaser.mp4">teaser (30 s)</a> · <a href="docs/media/installation.mp4">step-by-step install (40 s)</a>
+  <br><sub>Screenshots and videos use made-up data, in simulation mode.</sub>
+</p>
 
 ---
 
@@ -42,6 +52,10 @@ RedRock is an AI ([Hermes Agent](https://github.com/NousResearch/hermes-agent)) 
   journal and the news. You talk to it in the chat, like in a messaging app.
 - **Everything goes through the app.** Commands, scheduled-task notifications, alerts: no Telegram needed.
 - **It runs at home.** On a PC or a small always-on server, with Docker. Your keys never leave your machine.
+
+<p align="center">
+  <img src="docs/media/mort.png" width="720" alt="The handover: generation 3's tombstone, generation 4 drops in under the confetti">
+</p>
 
 ## Quick start
 
@@ -69,7 +83,14 @@ RedRock is an installable web app (PWA), no app store:
 | iPhone / iPad | Safari, Share button → **Add to Home Screen** |
 
 The first device pairs with the link printed by the installer; the next ones with the QR code
-(Réglages → Appareils → Appairer).
+(Réglages → Appareils → Appairer). On Linux with [Tailscale](https://tailscale.com), the installer can also open
+the app to your phone **without a code**: your Tailscale account is the key ([docs/usage.md](docs/usage.md#sur-ton-téléphone)).
+
+<p align="center">
+  <img src="docs/media/scene-tel.png" width="270" alt="The app on a phone: the screens on top, the character below">
+  &nbsp;
+  <img src="docs/media/chat-tel.png" width="270" alt="The chat on a phone: the /status command and an answer from the agent">
+</p>
 
 ## How it is built
 
@@ -91,7 +112,8 @@ The first device pairs with the link printed by the installer; the next ones wit
 - **agent**: the official `nousresearch/hermes-agent` image, with a starting persona
   ([agent/SOUL.md](agent/SOUL.md)) and two scheduled tasks (one trading cycle per hour, one daily review).
 - **dash** (`dash/`): the app. The character lives on its own in `dash/character/` and can be swapped for another
-  one through a documented contract ([docs/personnage.md](docs/personnage.md)).
+  one through a documented contract ([docs/personnage.md](docs/personnage.md)); Boulon, a free character, ships in
+  `dash/character-libre/`.
 
 ## Security
 
@@ -102,5 +124,6 @@ link or QR code), and the trading key is only read by the broker. Before opening
 ## Licenses
 
 The code is **MIT**. The RedRock character (`dash/character/`) is under **PolyForm Noncommercial 1.0.0**: free
-for any non-commercial use. Media (logo, icons, videos) are **CC BY-NC 4.0**. Details in
+for any non-commercial use; for commercial use, pick **Boulon** (`dash/character-libre/`, MIT, `CHARACTER=libre`).
+Media (logo, icons, videos) are **CC BY-NC 4.0**. Details in
 [LICENSES.md](LICENSES.md).

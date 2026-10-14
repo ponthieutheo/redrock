@@ -1,9 +1,12 @@
 /* HC-1 : service worker — appli installable, page disponible hors connexion, notifications push. */
-const CACHE = "hc1-v48";
-const SHELL = ["/", "/fx.js", "/character/redrock.js", "/character/face.js", "/logo.png", "/icon-192.png", "/manifest.webmanifest"];
+const CACHE = "hc1-v49";
+const SHELL = ["/", "/fx.js", "/character/redrock.js", "/character/face.js", "/character-libre/boulon.js", "/logo.png", "/icon-192.png", "/manifest.webmanifest"];
 
-self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).catch(() => {}));
+// bibliothèques et polices embarquées (dash/vendor/) : plus aucun CDN ; les polices s'ajoutent au cache dès leur premier usage
+const VENDOR = ["/vendor/three/three.module.js", "/vendor/fonts/fonts.css"];
+
+self.addEventListener("install", e => {   // fichier par fichier : un personnage absent (fork sans character/) n'empêche pas de garder le reste
+  e.waitUntil(caches.open(CACHE).then(c => Promise.all(SHELL.concat(VENDOR).map(u => c.add(u).catch(() => {})))).catch(() => {}));
   self.skipWaiting();
 });
 self.addEventListener("activate", e => {
@@ -12,13 +15,9 @@ self.addEventListener("activate", e => {
 // réseau d'abord (toujours la dernière version), copie locale seulement si le serveur est injoignable ; jamais les données /api
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
-  if (e.request.method === "GET" && url.hostname === "cdn.jsdelivr.net" && url.pathname.includes("/three@")) {
-    e.respondWith(caches.open(CACHE).then(c => c.match(e.request).then(hit => hit || fetch(e.request).then(r => { if (r.ok) c.put(e.request, r.clone()); return r; }))));
-    return;
-  }
   if (e.request.method !== "GET" || url.origin !== location.origin || url.pathname.startsWith("/api/")) return;
   e.respondWith(fetch(e.request).then(r => {
-    if (r.ok && SHELL.includes(url.pathname)) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(url.pathname, copy)); }
+    if (r.ok && (SHELL.includes(url.pathname) || url.pathname.startsWith("/vendor/"))) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(url.pathname, copy)); }
     return r;
   }).catch(() => caches.match(url.pathname).then(r => r || caches.match("/"))));
 });

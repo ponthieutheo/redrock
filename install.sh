@@ -5,7 +5,8 @@
 #   --yes       accepte les valeurs par défaut sans poser de question (mode simulation)
 #
 # Variables reconnues (utile avec --yes) : OPENROUTER_API_KEY, REDROCK_MODEL, REDROCK_MODE (paper|live),
-# PAPER_CAPITAL, HL_SUBACCOUNT, HL_AGENT_KEY, DD_TOLERANCE, REDROCK_BIND, REDROCK_PORT, REDROCK_TZ.
+# PAPER_CAPITAL, HL_SUBACCOUNT, HL_AGENT_KEY, DD_TOLERANCE, REDROCK_BIND, REDROCK_PORT, REDROCK_TZ,
+# REDROCK_TS (o|n : téléphone par Tailscale sans code, Linux), TS_LOGINS, TS_PORT.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -14,7 +15,7 @@ for a in "$@"; do
   case "$a" in
     --dry-run) DRY=1 ;;
     --yes|-y) YES=1 ;;
-    -h|--help) sed -n '2,9p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
     *) echo "Option inconnue : $a" >&2; exit 2 ;;
   esac
 done
@@ -71,7 +72,7 @@ if [ "$DRY" = 0 ]; then docker info >/dev/null 2>&1 || die "Docker est installé
 command -v curl >/dev/null 2>&1 || die "curl est requis."
 ok "Docker et Docker Compose"
 val() { grep "^$1=" "$2" 2>/dev/null | head -n1 | cut -d= -f2-; }
-OLD_MODE=""; OLD_GEN=""; OLD_CHAT=""; OLD_API=""
+OLD_MODE=""; OLD_GEN=""; OLD_CHAT=""; OLD_API=""; OLD_TS=""; OLD_TS_PORT=""
 if [ -f config/redrock.env ] && [ "$DRY" = 0 ]; then
   say "  RedRock semble déjà installé ici (config/redrock.env existe)."
   ask REINSTALL "Tout reconfigurer ? (o/N)" "n"
@@ -79,6 +80,7 @@ if [ -f config/redrock.env ] && [ "$DRY" = 0 ]; then
   # on garde la génération en cours et le code d'accès (les appareils restent appairés)
   OLD_MODE=$(val MODE config/redrock.env); OLD_GEN=$(val GENERATION config/redrock.env)
   OLD_CHAT=$(val CHAT_KEY config/chat.env); OLD_API=$(val HERMES_API_KEY config/chat.env)
+  OLD_TS=$(val TS_LOGINS config/chat.env); OLD_TS_PORT=$(val REDROCK_TS_PORT .env)
 fi
 
 step "Cerveau de l'agent (fournisseur d'IA)"
@@ -126,6 +128,40 @@ say "  (Tailscale, WireGuard…) plutôt que d'ouvrir un port sur Internet : voi
 ask REDROCK_BIND "Adresse d'écoute" "127.0.0.1"
 ask REDROCK_PORT "Port" "8750"
 ask REDROCK_TZ "Fuseau horaire" "Europe/Paris"
+# Téléphone sans code par Tailscale : « tailscale serve » (HTTPS sur ton réseau privé) parle à l'app par un socket Unix,
+# le seul chemin où l'app croit l'identité Tailscale. Linux seulement : sous Docker Desktop (Windows, macOS, WSL), l'hôte
+# ne peut pas ouvrir un socket créé par un conteneur ; le code d'accès y reste la solution (docs/usage.md).
+TS_LOGINS=${TS_LOGINS:-}; TS_PORT=${TS_PORT:-}
+if [ "$(uname -s)" = Linux ] && [ -z "${WSL_DISTRO_NAME:-}" ]; then
+  say ""
+  say "  ${B}Téléphone par Tailscale${N} (facultatif) : l'app s'ouvre en HTTPS sur ton réseau privé Tailscale, sans code,"
+  say "  pour ton compte Tailscale seulement. Le code d'accès continue de marcher partout (voir SECURITY.md)."
+  ask REDROCK_TS "Accès depuis ton téléphone par Tailscale ? (o/N)" "$([ -n "$OLD_TS$TS_LOGINS" ] && echo o || echo n)"
+  case "$REDROCK_TS" in
+    o|O|oui|y|yes)
+      say "  Ton compte = l'identifiant de connexion Tailscale (ex. toi@example.com, ou pseudo@github)."
+      ask TS_LOGINS "Compte(s) Tailscale autorisé(s), séparés par des virgules" "$OLD_TS"
+      [ -n "$TS_LOGINS" ] || die "Donne au moins un compte Tailscale (ex. toi@example.com)."
+      ask TS_PORT "Port HTTPS sur ton réseau Tailscale" "${OLD_TS_PORT:-443}"
+      # question posée ici (toutes les questions d'abord) ; la commande, elle, est lancée une fois l'app démarrée
+      if command -v tailscale >/dev/null 2>&1; then
+        ask TS_RUN "Lancer « sudo tailscale serve » à la fin de l'installation ? (o/N)" "n"
+      else
+        say "  Tailscale n'est pas installé ici : la commande à lancer sera affichée à la fin."
+      fi
+      ;;
+    *) TS_LOGINS="" ;;
+  esac
+else
+  say "  Téléphone : ici, passe par le code d'accès et « tailscale serve --bg $REDROCK_PORT » (docs/usage.md)."
+  TS_LOGINS=${TS_LOGINS:-$OLD_TS}   # réglage fait à la main : gardé tel quel
+fi
+TS_PORT=${TS_PORT:-${OLD_TS_PORT:-443}}
+if [ -n "$TS_LOGINS" ]; then
+  TS_LOGINS=$(printf '%s' "$TS_LOGINS" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+  [[ "$TS_LOGINS" =~ ^[^,@]+@[^,@]+(,[^,@]+@[^,@]+)*$ ]] || die "Compte Tailscale invalide : « $TS_LOGINS » (ex. toi@example.com)."
+  [[ "$TS_PORT" =~ ^[0-9]{1,5}$ ]] && [ "$TS_PORT" -ge 1 ] && [ "$TS_PORT" -le 65535 ] || die "Port invalide : $TS_PORT."
+fi
 
 step "Génération de la configuration"
 CHAT_KEY=${OLD_CHAT:-$(rand)}; API_KEY=${OLD_API:-$(rand)}
@@ -140,12 +176,15 @@ if [ "$RESET" = 1 ]; then
   GENERATION=1
   ok "ancien historique archivé dans $ARCH"
 fi
-run mkdir -p config secrets data/broker data/dash data/lineage data/hermes/workspace data/hermes/cron data/hermes/logs data/hermes/toolbox
+run mkdir -p config secrets data/broker data/dash data/sock data/lineage data/hermes/workspace data/hermes/cron data/hermes/logs data/hermes/toolbox
+# data/sock : le socket de l'app pour tailscale serve ; dossier fermé à tous sauf toi (et root, donc tailscaled)
+run chmod 700 data/sock 2>/dev/null || say "  ${R}!${N} data/sock n'est pas à toi (créé par Docker ?) : sudo chown $UID_:$GID_ data/sock, puis relance."
 write .env 600 <<EOF
 REDROCK_UID=$UID_
 REDROCK_GID=$GID_
 REDROCK_BIND=$REDROCK_BIND
 REDROCK_PORT=$REDROCK_PORT
+REDROCK_TS_PORT=$TS_PORT
 EOF
 write config/redrock.env 600 <<EOF
 # Règles et compte (lus par le broker et par l'app ; la clé de trading n'est PAS ici)
@@ -168,6 +207,8 @@ write config/chat.env 600 <<EOF
 # Code d'accès de l'app (chat et commandes) et clé de l'API interne de l'agent
 CHAT_KEY=$CHAT_KEY
 HERMES_API_KEY=$API_KEY
+# Comptes Tailscale admis sans code, SEULEMENT par le socket de tailscale serve (vide = coupé ; voir SECURITY.md)
+TS_LOGINS=$TS_LOGINS
 EOF
 write data/hermes/.env 600 <<EOF
 OPENROUTER_API_KEY=$OPENROUTER_API_KEY
@@ -225,12 +266,35 @@ else
   say "  crontab absent : lance « sh ops/watchdog.sh » chaque minute avec ton planificateur."
 fi
 
+if [ -n "$TS_LOGINS" ]; then
+  step "Téléphone par Tailscale"
+  ok "comptes admis sans code (par tailscale serve seulement) : $TS_LOGINS"
+  TS_CMD=(tailscale serve --bg "--https=$TS_PORT" "unix:$PWD/data/sock/dash.sock")
+  [ "$(id -u)" = 0 ] || TS_CMD=(sudo "${TS_CMD[@]}")
+  TS_SHOW=$(printf '%q ' "${TS_CMD[@]}"); TS_SHOW=${TS_SHOW% }
+  if [ "$DRY" = 1 ]; then say "  ${D}[à blanc]${N} $TS_SHOW"
+  else
+    for _ in $(seq 1 20); do [ -S data/sock/dash.sock ] && break; sleep 1; done
+    if [ -S data/sock/dash.sock ]; then ok "socket de l'app : data/sock/dash.sock"
+    else say "  ${R}!${N} data/sock/dash.sock absent : regarde « docker compose logs dash »."; fi
+    command -v tailscale >/dev/null 2>&1 || say "  Installe Tailscale (https://tailscale.com/download, même compte que ton téléphone), puis :"
+    say "  Cette commande publie l'app sur ton réseau Tailscale (HTTPS, port $TS_PORT) :"
+    say "    ${B}$TS_SHOW${N}"
+    case "${TS_RUN:-n}" in
+      o|O|oui|y|yes) if "${TS_CMD[@]}"; then ok "tailscale serve en place"; else say "  ${R}!${N} échec : lance-la toi-même."; fi ;;
+      *) say "  Lance-la quand tu veux (une seule fois : tailscale la garde après un redémarrage)." ;;
+    esac
+  fi
+  say "  Retour arrière : ${B}sudo tailscale serve --https=$TS_PORT off${N} (le code d'accès, lui, marche toujours)"
+fi
+
 URL="http://$([ "$REDROCK_BIND" = 0.0.0.0 ] && echo localhost || echo "$REDROCK_BIND"):$REDROCK_PORT"
 step "C'est prêt"
 say "  App          : ${B}$URL${N}"
 say "  Appairage    : ouvre une fois ce lien sur chaque appareil (il contient ton code d'accès, ne le partage pas)"
 say "                 ${B}$URL/#cle=$( [ "$DRY" = 1 ] && echo '•••' || echo "$CHAT_KEY")${N}"
 if [ "$DRY" = 0 ] && command -v qrencode >/dev/null 2>&1; then qrencode -t ansiutf8 "$URL/#cle=$CHAT_KEY"; fi
+[ -n "$TS_LOGINS" ] && say "  Tailscale    : l'adresse https://… de « tailscale serve status », sans code (comptes : $TS_LOGINS)"
 say "  Téléphone    : Android (Chrome) menu ⋮ > « Installer l'application » ; iPhone (Safari) Partager > « Sur l'écran d'accueil »."
 say "  Autres appareils : dans l'app, Réglages > Appareils > Appairer (QR code)."
 say "  Guide        : docs/usage.md   ·   Sécurité : SECURITY.md"

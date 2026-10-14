@@ -42,6 +42,7 @@ def fake_state():
 
 dash.state = fake_state
 dash.inbox_unread = lambda: 0
+dash.PERSO = ""   # personnage par défaut (RedRock) : la page est servie telle quelle
 dp = ThreadingHTTPServer(("127.0.0.1", 0), dash.H)
 threading.Thread(target=dp.serve_forever, daemon=True).start()
 
@@ -94,9 +95,22 @@ chars = [f for f in os.listdir(os.path.join(HERE, "character")) if f.endswith(".
 if chars:
     s, h, raw = req("GET", f"/character/{chars[0]}", GZ)
     ok("/character/*.js servi en JS", s == 200 and "javascript" in h.get("content-type", "") and unzip(h, raw) == open(os.path.join(HERE, "character", chars[0]), "rb").read())
-for bad in ("/character/../dash.py", "/character/LICENSE", "/character/x.py", "/character/inexistant.js", "/dash.py"):
+libre = open(os.path.join(HERE, "character-libre", "boulon.js"), "rb").read()
+s, h, raw = req("GET", "/character-libre/boulon.js", GZ)
+ok("/character-libre/boulon.js servi en JS, gzip", s == 200 and "javascript" in h.get("content-type", "") and h.get("content-encoding") == "gzip" and unzip(h, raw) == libre)
+for bad in ("/character/../dash.py", "/character/LICENSE", "/character/x.py", "/character/inexistant.js", "/dash.py",
+            "/character-libre/../dash.py", "/character-libre/LICENSE", "/character-libre/README.md", "/character-libre/inexistant.js", "/character-autre/boulon.js"):
     s, h, raw = req("GET", bad, GZ)
     ok(f"{bad} : 404 no-store", s == 404 and "no-store" in h.get("cache-control", ""))
+# perso libre (CHARACTER=libre, ou character/ absent) : la page est marquée <html data-perso="libre">, avec son propre ETag
+dash.PERSO = "libre"
+s, h, raw = req("GET", "/", GZ)
+page = unzip(h, raw)
+ok("perso libre : <html data-perso=\"libre\">, le reste inchangé", s == 200 and page.startswith(index.split(b"<html", 1)[0] + b'<html data-perso="libre"')
+   and page.replace(b' data-perso="libre"', b"", 1) == index)
+ok("perso libre : ETag distinct, 304 ensuite", h.get("etag") and h.get("etag") != tag and req("GET", "/", dict(GZ, **{"If-None-Match": h["etag"]}))[0] == 304)
+dash.PERSO = ""
+ok("personnage par défaut : la page d'origine", unzip(*req("GET", "/", GZ)[1:]) == index)
 
 # --- /api/state
 calls["n"] = 0

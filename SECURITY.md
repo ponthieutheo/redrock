@@ -37,6 +37,26 @@ Les notifications et l'installation en app (PWA) demandent HTTPS : `tailscale se
 Si tu dois quand même exposer l'app, mets-la derrière un reverse proxy HTTPS avec une authentification en plus
 du code d'accès, et garde le code secret.
 
+## Connexion sans code par Tailscale
+
+Option de `install.sh` (Linux), coupée par défaut. Ton téléphone ouvre l'app sans code : c'est ton compte Tailscale
+qui sert de clé.
+
+- **Qui est reconnu.** `tailscale serve` authentifie l'appareil sur ton réseau privé, ajoute à chaque requête
+  l'identifiant du compte (`Tailscale-User-Login`) et efface toute valeur envoyée par le client. RedRock n'accepte
+  que les comptes listés dans `TS_LOGINS` (`config/chat.env`).
+- **Par où.** RedRock ne croit cet en-tête **que** pour les requêtes arrivées par le socket Unix
+  `data/sock/dash.sock`, vers lequel pointe `tailscale serve`. Le dossier `data/sock/` est en droits 700 et le
+  socket en 660 : seuls ton utilisateur et root (donc `tailscaled`) peuvent l'ouvrir. Sur le port TCP (8750), un
+  en-tête `Tailscale-User-Login` ne vaut rien : un autre programme de la machine, un conteneur ou un tunnel SSH
+  ne peut pas se faire passer pour toi, il lui faut le code.
+- **Ce qui ne change pas.** Le code d'accès marche toujours, par Tailscale comme en local. Les autres appareils de
+  ton réseau Tailscale (ou des comptes non listés) doivent toujours donner le code.
+- **À ne pas faire.** Ne publie pas ce socket avec `tailscale funnel` (ouvert à Internet, sans identité) ni
+  derrière un autre proxy : seul `tailscale serve` garantit l'en-tête.
+- **Revenir en arrière.** `sudo tailscale serve --https=443 off` (ou le port choisi), puis vide `TS_LOGINS` dans
+  `config/chat.env` et `docker compose up -d dash`. Pour repasser par le code : `tailscale serve --bg 8750`.
+
 ## Le terminal de l'agent
 
 Hermes peut exécuter des commandes (`terminal.backend`). Dans RedRock, il les exécute **dans son propre

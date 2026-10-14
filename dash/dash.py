@@ -132,6 +132,12 @@ TOOL_LABELS = {"technicals": "analyse technique", "orderbook": "carnet d'ordres"
                "history": "relit ses trades", "write_journal": "écrit son journal", "lineage": "lit sa lignée",
                "terminal": "travaille dans son terminal", "read_file": "lit un fichier", "write_file": "écrit un fichier",
                "patch": "modifie son code", "memory": "met à jour sa mémoire", "web_search": "cherche sur le web"}
+MCP_PREFIX_RE = re.compile(r"^mcp__.+?__")   # « mcp__<serveur>__<outil> » : le nom du serveur MCP du broker importe peu
+
+
+def tool_name(raw):
+    """Nom court d'un outil tel que Hermes l'écrit dans son journal (préfixe MCP retiré, quel que soit le serveur)."""
+    return MCP_PREFIX_RE.sub("", raw)
 
 
 def activity(jobs):
@@ -156,16 +162,16 @@ def activity(jobs):
         if age > 75:
             return {"thinking": False, "last_seen": ts.isoformat()}
         session = line.split("[", 1)[1].split("]", 1)[0] if "[" in line else ""
-        where = "conversation Telegram"
+        where = "conversation dans l'app" if session.startswith("dashboard-chat") else "conversation"
         if session.startswith("cron_"):
             where = "tâche « " + (names.get(session.split("_")[1]) or "programmée") + " »"
         tool = None
         if "tool_executor: tool " in line:
-            tool = line.split("tool_executor: tool ", 1)[1].split()[0].replace("mcp__redrock_broker__", "")
+            tool = tool_name(line.split("tool_executor: tool ", 1)[1].split()[0])
         else:
             for l2 in reversed(lines):
                 if session and f"[{session}]" in l2 and "tool_executor: tool " in l2:
-                    tool = l2.split("tool_executor: tool ", 1)[1].split()[0].replace("mcp__redrock_broker__", "")
+                    tool = tool_name(l2.split("tool_executor: tool ", 1)[1].split()[0])
                     break
         return {"thinking": True, "where": where, "tool": tool, "doing": TOOL_LABELS.get(tool, tool), "since_s": round(age)}
     return {"thinking": False}
@@ -878,7 +884,7 @@ def fetch_news():
 def jev_scores():
     """Score de pertinence Jev par titre, tel que la sentinelle l'a consigné."""
     out = {}
-    for line in read(f"{TOOLBOX}/bots/sentinel.log", tail=400).splitlines():
+    for line in (read(f"{TOOLBOX}/bots/sentinel.log", tail=400) or "").splitlines():   # sans sentinelle (install neuve) : aucun score
         m = re.match(r"\[signal\] news\s*: (.*) \(jev ([0-9.]+)\)\s*$", line)
         if m:
             out[m.group(1).strip()] = float(m.group(2))
@@ -997,7 +1003,26 @@ def actus():
 STATIC = {"/manifest.webmanifest": "application/manifest+json", "/sw.js": "text/javascript; charset=utf-8", "/fx.js": "text/javascript; charset=utf-8",
           "/icon-192.png": "image/png", "/icon-512.png": "image/png", "/icon-maskable.png": "image/png",
           "/apple-touch-icon.png": "image/png", "/logo.png": "image/png", "/favicon.png": "image/png"}
-CHARACTER_RE = re.compile(r"/character/[A-Za-z0-9_-]{1,40}\.js")   # modules du personnage (dash/character/*.js)
+CHARACTER_RE = re.compile(r"/character(?:-libre)?/[A-Za-z0-9_-]{1,40}\.js")   # modules des personnages (dash/character/*.js, dash/character-libre/*.js)
+# Personnage : RedRock (character/, licence non commerciale) par défaut ; Boulon, le perso libre (character-libre/, MIT), si
+# CHARACTER=libre ou si character/ est absent (fork public sans le personnage non commercial). La page le lit sur <html data-perso>.
+PERSO = "libre" if os.environ.get("CHARACTER", "").strip().lower() == "libre" or not os.path.isfile(f"{HERE}/character/redrock.js") else ""
+# bibliothèques embarquées (dash/vendor/ : three.js, qrcode-generator, polices) : aucun CDN, l'app marche sans Internet.
+# Liste figée au démarrage : on ne sert qu'une URL égale à un fichier listé, jamais un chemin construit depuis la requête.
+VENDOR_TYPES = {".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".woff2": "font/woff2"}
+
+
+def vendor_files(root=os.path.join(HERE, "vendor")):
+    out = {}
+    for d, _dirs, files in os.walk(root):
+        for f in files:
+            ext = os.path.splitext(f)[1]
+            if ext in VENDOR_TYPES and not os.path.islink(os.path.join(d, f)):
+                out["/vendor/" + os.path.relpath(os.path.join(d, f), root).replace(os.sep, "/")] = (os.path.join(d, f), VENDOR_TYPES[ext])
+    return out
+
+
+VENDOR = vendor_files()
 
 
 # ---------------------------------------------------------------- cache HTTP : gzip, ETag / 304
@@ -1025,6 +1050,17 @@ def static_entry(path):
     entry = {"body": body, "etag": etag_of(body), "gz": None}
     _static_cache[path] = (key, entry)
     return entry
+
+
+def index_entry():
+    """index.html ; avec le perso libre, marqué <html data-perso="libre"> (variante gardée à côté de l'original, même cache)."""
+    e = static_entry(f"{HERE}/index.html")
+    if not PERSO:
+        return e
+    if e.get("perso") is None:
+        body = re.sub(rb"<html\b", b'<html data-perso="' + PERSO.encode() + b'"', e["body"], count=1)
+        e["perso"] = {"body": body, "etag": etag_of(body), "gz": None}
+    return e["perso"]
 
 
 # /api/state : calculé au plus une fois toutes les STATE_TTL s (tous les appareils partagent le même calcul, donc les
@@ -1939,11 +1975,17 @@ class H(BaseHTTPRequestHandler):
             except Exception as ex:
                 self._send(500, json.dumps({"error": str(ex)}).encode(), "application/json")
         elif self.path in ("/", "/index.html"):
-            self._send_static(f"{HERE}/index.html", "text/html; charset=utf-8")
+            try:
+                e = index_entry()
+            except OSError:
+                return self._send(404, b"not found", "text/plain")
+            self._send(200, e["body"], "text/html; charset=utf-8", cache="no-cache", etag=e["etag"], entry=e)
         elif self.path in STATIC:
             self._send_static(f"{HERE}{self.path}", STATIC[self.path])
         elif CHARACTER_RE.fullmatch(self.path) and os.path.isfile(f"{HERE}{self.path}"):
             self._send_static(f"{HERE}{self.path}", "text/javascript; charset=utf-8")
+        elif self.path in VENDOR:
+            self._send_static(*VENDOR[self.path])
         else:
             self._send(404, b"not found", "text/plain")
 
@@ -2002,13 +2044,16 @@ def serve_sock(path):
             req, _ = super().get_request()
             return req, ("tailscale", 0)   # BaseHTTPRequestHandler attend un tuple (hôte, port)
 
-    try:
-        os.unlink(path)
-    except FileNotFoundError:
-        pass
     old = os.umask(0o117)   # socket en 660 : propriétaire et groupe seulement (tailscaled tourne en root)
     try:
+        try:
+            os.unlink(path)
+        except FileNotFoundError:
+            pass
         srv = UnixHTTP(path, HS)
+    except OSError as ex:   # dossier absent ou pas à nous : l'app reste joignable par le port TCP (avec le code)
+        print(f"socket {path} indisponible ({ex.strerror}) : connexion Tailscale sans code coupée", flush=True)
+        return
     finally:
         os.umask(old)
     srv.serve_forever()

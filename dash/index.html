@@ -12,9 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="RedRock">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="/vendor/fonts/fonts.css" rel="stylesheet">
 <style>
 :root {
   --void: #120506; --panel: #1c0809; --panel-2: #250c0e; --line: #3a1416; --line-2: #4d1a1d;
@@ -1217,9 +1215,9 @@ html.tv .app { grid-template: "stage" minmax(0, 1fr) "ticker" auto / minmax(0, 1
             <p class="note">Hermes et Jev utilisent la même clé. Ce coût ne compte pas dans sa survie, mais sans crédit il ne peut plus réfléchir, donc plus atteindre son objectif.</p>
           </div>
         </details>
-        <details class="fold" data-fold="tech">
+        <details class="fold" data-fold="tech" id="tech">
           <summary><span class="fold-t">Coulisses techniques</span></summary>
-          <h3>Bots</h3><div id="bots"></div><h3>Tâches programmées</h3><div style="overflow-x:auto"><table id="jobs"></table></div>
+          <h3 id="bots-h">Bots</h3><div id="bots"></div><h3 id="jobs-h">Tâches programmées</h3><div style="overflow-x:auto" id="jobs-w"><table id="jobs"></table></div>
         </details>
         <button class="go-row" type="button" data-go="lignee"><span><b>Lignée</b><small>cimetière, leçons, consignes</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
       </section>
@@ -1556,6 +1554,7 @@ function guardAlert(s) {
 function chart(s) {
   const rows = s.equity_curve.concat([{ts: s.now, equity: s.equity}]);
   const box = $("chart");
+  if (!box.clientWidth) return;   // sous-onglet « Toutes les vies » affiché : rien à dessiner (sinon largeur négative)
   box.querySelectorAll("svg, .empty").forEach(e => e.remove());
   if (rows.length < 2) { box.insertAdjacentHTML("afterbegin", '<p class="empty">Je viens de naître : ma courbe se dessine dans quelques minutes.</p>'); return; }
   const W = box.clientWidth, H = Math.max(W < 600 ? 260 : 340, Math.min(560, Math.round(innerHeight * .5))), L = 52, R = 12, T = 14, B = 26;
@@ -1952,6 +1951,13 @@ function lists(s) {
   const recent = t => t.closed_at || t.opened_at || "";
   $("n-trades").textContent = s.trades.length || "";
   $("n-tombs").textContent = s.graveyard.length || "";
+  // blocs qui dépendent de la boîte à outils de l'agent (bots, consignes) et des tâches programmées : sans données
+  // (installation neuve), ils disparaissent au lieu de s'afficher vides
+  const hasBots = !!(s.bots && s.bots.length), hasJobs = !!(s.jobs && s.jobs.length), hasDir = !!s.directives;
+  $("bots-h").hidden = $("bots").hidden = !hasBots; $("jobs-h").hidden = $("jobs-w").hidden = !hasJobs; $("tech").hidden = !hasBots && !hasJobs;
+  const dirTab = document.querySelector('#sec-lignee .segs button[data-sub="directives"]');
+  dirTab.hidden = !hasDir; document.querySelector('[data-go="lignee"] small').textContent = hasDir ? "cimetière, leçons, consignes" : "cimetière, leçons";
+  if (!hasDir && dirTab.getAttribute("aria-selected") === "true") document.querySelector('#sec-lignee .segs button[data-sub="tombs"]').click();
   lazyList("trades", "historique", "trades", s.trades.map(t => [t.id, t.status, t.pnl, t.exit, t.closed_at, t.stop_loss, t.take_profit, t.close_reason, (t.thesis || "").length].join(",")).join(";"), () => {
   $("trades").innerHTML = s.trades.length ? s.trades.slice().sort((a, b) => recent(b).localeCompare(recent(a))).slice(0, LIM.trades).map(t => {
     const open = t.status === "open", o = open ? ["en cours", "live"] : OUT[t.close_reason] || ["Fermé", "muted"];
@@ -2375,7 +2381,7 @@ async function drawCurves() {
   let y0 = Math.min(...ys, mode === "chrono" ? Infinity : 0), y1 = Math.max(...ys, mode === "chrono" ? -Infinity : 0);
   const pad = Math.max((y1 - y0) * .1, mode === "chrono" ? .5 : .5); y0 -= pad; y1 += pad;
   const X = v => L + (v - x0) / (x1 - x0) * (W - L - R), Y = v => T + (1 - (v - y0) / (y1 - y0)) * (H - T - B);
-  const yl = v => mode === "chrono" ? fmt(v, v >= 100 ? 0 : 1) + " $" : sgn(v, 1) + " %";
+  const yl = v => mode === "chrono" ? fmt(v, v >= 100 && y1 - y0 >= 5 ? 0 : 1) + " $" : sgn(v, 1) + " %";   // courbe presque plate (vie qui commence) : une décimale, sinon deux graduations « 100 $ »
   const xl = v => mode === "chrono" ? when(new Date(v).toISOString()) : Math.round(v) + " h";
   let s = "";
   for (let i = 0; i <= 4; i++) { const v = y0 + (y1 - y0) * i / 4; s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#28100f"/><text x="${L - 8}" y="${Y(v) + 4}" text-anchor="end">${yl(v)}</text>`; }
@@ -2433,9 +2439,9 @@ function recap(s) {
       $("recap").hidden = false; clearTimeout(recap.t); recap.t = setTimeout(() => $("recap").hidden = true, 20000);
     }
   }
-  // une nouvelle génération qu'on n'a pas encore vue naître : elle sort de son œuf
+  // une nouvelle génération qu'on n'a pas encore vue naître : la relève se joue (jamais pour la génération 1 : personne à enterrer)
   const hatched = +(store.get("hc1-hatched") || 0);
-  if (s.alive && s.generation > hatched && (prev && s.generation > prev.gen || s.born && Date.now() - new Date(s.born) < 30 * 60000)) hatch();
+  if (s.alive && s.generation > 1 && s.generation > hatched && (prev && s.generation > prev.gen || s.born && Date.now() - new Date(s.born) < 30 * 60000)) hatch();
   if (!hatched || s.generation > hatched && !(prev && s.generation > prev.gen) && !(s.born && Date.now() - new Date(s.born) < 30 * 60000)) store.set("hc1-hatched", s.generation);
   saveVisit();
 }
@@ -2516,7 +2522,7 @@ $("open-settings").addEventListener("click", () => { syncSettings(); $("settings
 // appairage : QR code du lien origin/#cle=… pour ouvrir le chat sur un autre appareil
 { const box = $("pair-box"), note = $("pair-note"), link = () => location.origin + "/#cle=" + encodeURIComponent(store.get("hc1.chatkey") || "");
   const loadQR = () => window.qrcode ? Promise.resolve() : new Promise((ok, ko) => { const sc = document.createElement("script");
-    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"; sc.crossOrigin = "anonymous";
+    sc.src = "/vendor/qrcode-generator/qrcode.min.js"; sc.crossOrigin = "anonymous";
     sc.integrity = "sha512-ZDSPMa/JM1D+7kdg2x3BsruQ6T/JpJo3jWDWkCZsP+5yVyp1KfESqLI+7RqB5k24F7p2cV7i2YHh/890y6P6Sw=="; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); });
   $("pair-btn").addEventListener("click", async () => {
     if (!store.get("hc1.chatkey")) { note.textContent = "Entre d'abord le code d'accès dans le chat de cet appareil."; return; }
@@ -2830,7 +2836,8 @@ let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() 
       `Génération ${s.generation} · ${s.alive ? "en vie" : "mort"} · ${s.mode === "live" ? "argent réel" : "simulation"}`,
       `Capital ${usd(s.equity)} (${sgn(s.pnl_total)} $, ${s.start_equity ? sgn(s.pnl_total / s.start_equity * 100, 1) + " %" : "–"} depuis sa naissance)`,
       s.born ? "En vie depuis " + dur((Date.now() - new Date(s.born)) / 3600000) : "",
-      (s.activity && s.activity.thinking) ? "Il réfléchit en ce moment." : "Au repos."].filter(Boolean)],
+      (s.activity && s.activity.thinking) ? "Il réfléchit en ce moment."
+        : (s.positions || []).length ? `${s.positions.length} position${s.positions.length > 1 ? "s" : ""} ouverte${s.positions.length > 1 ? "s" : ""} : il surveille.` : "Au repos, aucune position."].filter(Boolean)],
     ["positions", "Positions ouvertes", s => {
       const ps = s.positions || [];
       if (!ps.length) return ["Aucune position ouverte." + ((s.pending || []).length ? ` ${(s.pending || []).length} ordre(s) en attente.` : "")];
@@ -3172,13 +3179,17 @@ $("chat-wear").addEventListener("click", () => { const t = $("emote-tray").query
   setInterval(tick, 2000); setTimeout(tick, 600);
 })();
 </script>
-<script type="importmap">{"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+<script type="importmap">{"imports": {"three": "/vendor/three/three.module.js"}}</script>
 <script type="module">
 /* HC-1 en vraie 3D : sphère éclairée, logo projeté sur la sphère (vu de face = le logo exact),
    encoche = fente qui traverse le haut de la tête, bureau + écran (courbe réelle) + clavier + mains.
    Si WebGL échoue, le logo reste affiché. */
 import * as THREE from "three";
-import {createCharacter} from "./character/redrock.js";   // le personnage (licence non commerciale) vit dans character/
+// le personnage : RedRock (character/, licence non commerciale) par défaut ; Boulon, le perso libre (character-libre/, MIT), si le
+// serveur le choisit (CHARACTER=libre → <html data-perso="libre">), avec ?perso=libre pour essayer, ou si character/ est absent
+const PERSO = new URLSearchParams(location.search).get("perso") || document.documentElement.dataset.perso || "redrock";
+const libre = () => import("./character-libre/boulon.js");
+const {createCharacter} = await (PERSO === "libre" ? libre() : import("./character/redrock.js").catch(libre));
 
 const FORCE = new URLSearchParams(location.search).get("render") === "force";
 function start() {
@@ -3666,13 +3677,17 @@ function start() {
     "sig = momentum(df, lookback=24)", "res = backtest.run(df, sig, stop_atr=2)", "print(res[\"stats\"])", "# hors échantillon d'abord",
     "wf = backtest.walk_forward(df, momentum,", "      {\"lookback\": [12, 24, 48]})", "if wf.return_pct.mean() > 0:", "    enable(\"bots/momo.py\")",
     "$ git commit -am \"momo v3\"", "$ tail -f bots/momo.log"];
+  // sans boîte à outils (pas de bots : installation neuve), un extrait qui ne cite ni bibliothèque ni bot qu'il n'a pas
+  const CODE_GEN = ["import json, statistics", "", "trades = json.load(open(\"trades.json\"))", "pnl = [t[\"pnl\"] for t in trades]",
+    "print(round(statistics.mean(pnl), 2))", "# frais et funding compris", "wins = [p for p in pnl if p > 0]", "print(len(wins), \"/\", len(pnl))",
+    "", "$ ls notes/", "journal.md  idees.md", "$ tail -n 3 notes/journal.md", "$ python stats.py", "$ cat notes/idees.md"];
   const mono = "600 17px ui-monospace, Consolas, monospace", disp = (w, px) => `${w} ${px}px 'Chakra Petch', sans-serif`;
   function title(txt, col) { sctx.fillStyle = col || "#ad918c"; sctx.font = disp(700, 30); sctx.textAlign = "left"; sctx.fillText(txt.toUpperCase(), 22, 44); }
   function money(v) { return v.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " $"; }
   function screenCode(t) {
     sctx.fillStyle = "#070202"; sctx.fillRect(0, 0, SW, SH); title("terminal", "#6f5653");
-    const off = Math.floor(t * 2.2), n = 8; sctx.font = "600 23px ui-monospace, Consolas, monospace";
-    for (let i = 0; i < n; i++) { const line = CODE[(off + i) % CODE.length], y = 82 + i * 27;
+    const off = Math.floor(t * 2.2), n = 8, S = window.__hc1, L = S && S.bots && S.bots.length ? CODE : CODE_GEN; sctx.font = "600 23px ui-monospace, Consolas, monospace";
+    for (let i = 0; i < n; i++) { const line = L[(off + i) % L.length], y = 82 + i * 27;
       sctx.fillStyle = line.startsWith("#") ? "#6f5653" : line.startsWith("$") ? "#3fcb7a" : /^(import|from|if|print)/.test(line) ? "#ff6b6b" : "#d8c6c1";
       sctx.fillText(line, 22, y); }
     if (Math.floor(t * 2) % 2) { sctx.fillStyle = "#f6ebe6"; sctx.fillRect(22, 82 + n * 27 - 19, 13, 22); }
