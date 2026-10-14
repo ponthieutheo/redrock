@@ -71,6 +71,19 @@ Rien n'est caché : chaque trade a sa thèse, chaque décision est écrite, chaq
   </tr>
 </table>
 
+## Tout ce que tu peux faire
+
+- **Lui parler** comme sur une messagerie, en mode appel vidéo, avec des commandes `/` (status, positions, pnl, stop, steer…).
+- **Le toucher** : le caresser, lui faire boire son café, changer sa tenue d'un glissement, lui lancer **13 émotes**.
+- **Le regarder vivre** : il réfléchit, trade, dort, panique quand sa fin approche, gagne des lunettes et une couronne,
+  sort son téléphone quand un message l'attend ; sa plante pousse avec ses trades gagnants.
+- **Tout vérifier** : ses positions et leur thèse, son journal de pensée, chaque trade rejouable, ses vrais résultats,
+  toutes ses vies et leurs morts.
+- **Débloquer 11 succès** : Première nuit, Phénix, Sniper, Remontada, Centurion…
+- **L'avoir partout** : PC, téléphone (app installable) et TV (mode TV, écran toujours allumé).
+
+Le tour complet : **[docs/fonctionnalites.md](docs/fonctionnalites.md)**.
+
 ## Démarrage rapide
 
 ```bash

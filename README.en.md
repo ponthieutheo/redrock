@@ -70,6 +70,19 @@ Nothing is hidden: every trade has its thesis, every decision is written down, e
   </tr>
 </table>
 
+## Everything you can do
+
+- **Talk to it** like in a messaging app, video-call style, with `/` commands (status, positions, pnl, stop, steer…).
+- **Touch it**: pet it, make it sip its coffee, swipe to change its outfit, trigger **13 emotes**.
+- **Watch it live**: it thinks, trades, sleeps, panics as its end gets close, earns sunglasses and a crown, takes its
+  phone out when a message is waiting; its plant grows with its winning trades.
+- **Check everything**: its positions and their thesis, its thought journal, every trade replayable, its real results,
+  all its lives and deaths.
+- **Unlock 11 achievements**: First night, Phoenix, Sniper, Comeback, Centurion…
+- **Have it everywhere**: PC, phone (installable app) and TV (TV mode, screen always on).
+
+The full tour (in French): **[docs/fonctionnalites.md](docs/fonctionnalites.md)**.
+
 ## Quick start
 
 ```bash
