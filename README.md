@@ -100,7 +100,7 @@ Guide pas à pas : **[docs/installation.md](docs/installation.md)** · Utilisati
 
 L'installation en 30 secondes :
 
-https://github.com/user-attachments/assets/683c0bcc-1021-407d-aa4d-5f33f6abafc7
+https://github.com/user-attachments/assets/92a34aac-ed1e-419f-b836-acd9e6f616e8
 
 ## Sur tous tes écrans
 
