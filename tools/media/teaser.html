@@ -5,38 +5,68 @@
 <style>
   :root { --ink: #0c0304; --blood: #f0101c; --bone: #f6ebe6; --ash: #ad918c; --dust: #735955; --line: #2b1416; --bar: #1a0b0d; --app: #120506; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); color: var(--bone); font-family: 'Chakra Petch', sans-serif; }
-  #stage { position: absolute; inset: 0; overflow: hidden; }
+  html, body { overflow: hidden; background: var(--ink); color: var(--bone); font-family: 'Chakra Petch', sans-serif; }
+  html.h, html.h body { width: 1920px; height: 1080px; }
+  html.v, html.v body { width: 1080px; height: 1920px; }
+  #stage { position: absolute; inset: 0; overflow: hidden; will-change: transform; }
+  #scene { position: absolute; inset: 0; overflow: hidden; will-change: transform, filter; }
   .part { position: absolute; inset: 0; overflow: hidden; display: none; }
-  .panel { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   iframe { border: 0; display: block; }
-  em { font-style: normal; color: var(--blood); }
-  .mask { overflow: hidden; } .mask > * { display: block; }
-  /* légende : plaque noire à plat */
-  .cap { position: absolute; left: 64px; background: var(--ink); padding: 30px 40px 34px; width: 640px; display: none; }
-  .cap.bl { bottom: 72px; } .cap.tl { top: 72px; }
-  .cap .h { font-weight: 700; font-size: 64px; line-height: 1.02; text-transform: uppercase; }
-  .cap .s { font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 30px; line-height: 1.25; color: var(--ash); margin-top: 14px; }
+  em { font-style: normal; color: var(--blood); text-shadow: 0 0 28px rgba(240,16,28,.45); }
+  #app { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  #band { position: absolute; left: 0; right: 0; bottom: 0; display: none; }
+
+  /* ---------- typographie cinétique : lignes posées (data-txt), mots qui surgissent (.w) ---------- */
+  .blk { position: absolute; display: none; }
+  .glass { position: absolute; inset: -26px -34px -30px -30px; background: rgba(12,3,4,.58); backdrop-filter: blur(18px) saturate(1.2) brightness(.5);
+           border-left: 7px solid var(--blood); border-radius: 4px; box-shadow: 0 24px 60px rgba(0,0,0,.35); }
+  .ln { position: relative; display: block; width: max-content; max-width: var(--maxw, 860px); white-space: nowrap; padding: .02em .04em .06em 0;
+        font-weight: 700; text-transform: uppercase; line-height: 1.04; letter-spacing: .01em; }
+  .ln .w { display: inline-block; margin-right: .26em; transform-origin: 50% 70%; will-change: transform, filter, opacity; }
+  .ln .w:last-child { margin-right: 0; }
+  .ln.s { font-family: 'Barlow', sans-serif; font-weight: 600; text-transform: none; color: var(--ash); letter-spacing: 0; margin-top: .35em; }
+  .ln.k { font-weight: 700; color: var(--blood); letter-spacing: .24em; }
+  /* bulle « Salut ! » (le perso salue) */
+  #hello { position: absolute; display: none; padding: 14px 30px 18px; background: var(--bone); color: var(--ink); border-radius: 30px; font-weight: 700; white-space: nowrap;
+           box-shadow: 0 18px 40px rgba(0,0,0,.35); transform-origin: var(--ox, 100%) 100%; }
+  #hello::after { content: ""; position: absolute; bottom: -16px; width: 0; height: 0; border-top: 20px solid var(--bone); border-left: 14px solid transparent; border-right: 14px solid transparent; }
+  html.h #hello::after { right: 26px; } html.v #hello::after { right: 54px; }
+
+  /* ---------- tuile d'icône (marque) ---------- */
+  .tile { position: relative; border-radius: 22.5%; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.6), 0 0 0 1.5px rgba(255,255,255,.07); background: #000; }
+  .tile img { display: block; width: 100%; height: 100%; }
+  .tile .shine { position: absolute; inset: -30%; background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,.55) 50%, transparent 58%); transform: translateX(-120%); }
+  .tile .glow { position: absolute; inset: 0; border-radius: inherit; }
+  .halo { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, rgba(240,16,28,.55), rgba(240,16,28,0)); pointer-events: none; }
+
+  /* ---------- cartes plein cadre (titre, fin) ---------- */
+  .card { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
+          background: radial-gradient(70% 55% at 50% 45%, #3a0a0d 0%, #1a0507 50%, var(--ink) 100%); }
   .word { font-weight: 700; letter-spacing: .02em; line-height: 1; display: flex; }
-  .word span { display: inline-block; }
-  .tag { font-family: 'Barlow', sans-serif; font-weight: 500; color: var(--ash); }
+  .word span { display: inline-block; will-change: transform, filter, opacity; }
+  .tag { font-family: 'Barlow', sans-serif; font-weight: 500; color: var(--ash); text-align: center; }
+  .pill { background: var(--blood); color: var(--ink); font-weight: 700; letter-spacing: .16em; }
+  .url { font-weight: 600; letter-spacing: .01em; }
+  .lic { font-family: 'Barlow', sans-serif; font-weight: 500; color: var(--dust); }
+  .card > * { flex: none; }
+  html.h #title .tile { width: 230px; height: 230px; margin-bottom: 34px; }
+  html.h #title .k { font-size: 40px; } html.h #title .word { font-size: 170px; } html.h #title .tag { font-size: 44px; margin-top: 22px; }
+  html.v #title .tile { width: 320px; height: 320px; margin-bottom: 44px; }
+  html.v #title .k { font-size: 46px; } html.v #title .word { font-size: 156px; } html.v #title .tag { font-size: 46px; margin-top: 26px; max-width: 760px; }
+  #title .k { font-weight: 700; color: var(--blood); letter-spacing: .4em; margin-bottom: 6px; padding-left: .4em; }
+  html.h #end .tile { width: 250px; height: 250px; margin-bottom: 30px; }
+  html.h #end .word { font-size: 140px; } html.h #end .tag { font-size: 38px; margin-top: 14px; }
+  html.h #end .pill { font-size: 30px; padding: 10px 26px 8px; margin-top: 26px; } html.h #end .url { font-size: 58px; margin-top: 18px; } html.h #end .lic { font-size: 26px; margin-top: 12px; }
+  html.v #end .tile { width: 340px; height: 340px; margin-bottom: 40px; }
+  html.v #end .word { font-size: 150px; } html.v #end .tag { font-size: 40px; margin-top: 18px; max-width: 760px; line-height: 1.25; }
+  html.v #end .pill { font-size: 32px; padding: 12px 28px 10px; margin-top: 36px; } html.v #end .url { font-size: 46px; margin-top: 26px; } html.v #end .lic { font-size: 28px; margin-top: 16px; }
+  html.v #end, html.v #title { padding: 154px 130px 384px; }   /* zone sûre des réseaux : rien en bas, rien dans la colonne de droite */
 
-  /* ---------- partie 1 : la salle ---------- */
-  #app { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; }
-  #hook { position: absolute; left: 0; top: 0; bottom: 0; width: 800px; background: var(--ink); display: flex; flex-direction: column; justify-content: center; padding-left: 100px; }
-  #hook .l { font-weight: 700; font-size: 100px; line-height: 1.04; text-transform: uppercase; }
-  #hook .l span { display: inline-block; }
-  #title { background: var(--ink); gap: 24px; }
-  #title img { width: 200px; height: 200px; object-fit: contain; }
-  #title .word { font-size: 176px; }
-  #title .tag { font-size: 46px; }
-
-  /* ---------- partie 2 : les appareils ---------- */
-  #devs { position: absolute; inset: 0; background: radial-gradient(1100px 800px at 66% 52%, #2a0809 0%, #170506 45%, var(--ink) 100%); }
+  /* ---------- appareils ---------- */
+  #devs { position: absolute; inset: 0; background: radial-gradient(1100px 800px at 60% 52%, #2a0809 0%, #170506 45%, var(--ink) 100%); }
+  html.v #devs { background: radial-gradient(900px 1100px at 50% 48%, #2a0809 0%, #170506 45%, var(--ink) 100%); }
   .dev { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
-  .glow { position: absolute; left: 0; top: 0; width: 1400px; height: 220px; margin: -110px 0 0 -700px; border-radius: 50%;
-          background: radial-gradient(closest-side, rgba(0,0,0,.6), rgba(0,0,0,0)); }
-  /* écran d'ordinateur, à plat */
+  .glow { position: absolute; left: 0; top: 0; width: 1400px; height: 220px; margin: -110px 0 0 -700px; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.6), rgba(0,0,0,0)); }
   #mon { width: 1480px; height: 1048px; }
   #mon .scr { position: absolute; left: 0; top: 0; width: 1480px; height: 940px; background: #050102; border: 2px solid var(--line); border-radius: 22px; padding: 18px; }
   #mon .win { position: relative; width: 1440px; height: 900px; border-radius: 8px; overflow: hidden; background: var(--bar); }
@@ -44,23 +74,20 @@
   #mon .bb .dots { display: flex; gap: 8px; } #mon .bb .dots i { width: 12px; height: 12px; border-radius: 50%; background: #3a2124; display: block; }
   #mon .bb .tabx { display: flex; align-items: center; gap: 9px; height: 30px; padding: 0 16px; margin-top: 10px; align-self: flex-end; background: var(--app); border-radius: 9px 9px 0 0;
                    font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 16px; color: var(--bone); }
-  #mon .bb .tabx img { width: 18px; height: 18px; }
+  #mon .bb .tabx img { width: 18px; height: 18px; border-radius: 4px; }
   #mon .bb .url { flex: 0 1 560px; margin-left: 40px; height: 28px; border-radius: 14px; background: var(--ink); display: flex; align-items: center; padding: 0 16px;
                   font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 16px; color: var(--ash); }
   #mon .bb .url b { color: var(--bone); font-weight: 600; }
   #a-pc { width: 1440px; height: 860px; }
   #mon .neck { position: absolute; left: 650px; top: 940px; width: 180px; height: 90px; background: linear-gradient(#1a0b0d, #120607); clip-path: polygon(22% 0, 78% 0, 88% 100%, 12% 100%); }
   #mon .base { position: absolute; left: 520px; top: 1028px; width: 440px; height: 20px; border-radius: 10px; background: #1d0c0e; border: 2px solid var(--line); }
-  /* téléviseur */
   #tv { width: 1628px; height: 1110px; }
   #tv .board { position: absolute; left: -130px; top: 988px; width: 1888px; height: 122px; background: linear-gradient(#2a1214, #180809); border-top: 3px solid #4d2428; border-radius: 4px; }
-  #tv .board i { position: absolute; top: 30px; width: 2px; height: 70px; background: #3a1a1d; } #tv .board i:nth-child(1) { left: 629px; } #tv .board i:nth-child(2) { left: 1258px; }
   #tv .scr { position: absolute; left: 0; top: 0; width: 1628px; height: 928px; background: #050102; border: 2px solid var(--line); border-radius: 12px; padding: 12px; }
   #a-tv { width: 1600px; height: 900px; }
   #tv .led { position: absolute; left: 808px; top: 917px; width: 12px; height: 4px; border-radius: 2px; background: var(--blood); }
   #tv .foot { position: absolute; top: 928px; width: 26px; height: 62px; background: #1a0b0d; border: 2px solid var(--line); border-top: 0; }
   #tv .foot.l { left: 220px; transform: skewX(14deg); } #tv .foot.r { left: 1382px; transform: skewX(-14deg); }
-  /* téléphone */
   #ph { width: 416px; height: 870px; }
   #ph .body { position: absolute; inset: 0; background: #050102; border: 2px solid var(--line); border-radius: 66px; padding: 11px; }
   #ph .scr { position: relative; width: 390px; height: 844px; border-radius: 54px; overflow: hidden; background: var(--app); }
@@ -76,7 +103,7 @@
   #pwa { position: absolute; inset: 0; background: var(--app); opacity: 0; }
   #a-tel { position: absolute; left: 0; top: 47px; width: 390px; height: 797px; }
   #zoomer { position: absolute; background: var(--app); display: none; overflow: hidden; }
-  #zoomer img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+  #zoomer img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 22%; }
   #sbar { position: absolute; left: 0; right: 0; top: 0; height: 47px; display: flex; align-items: center; justify-content: space-between; padding: 6px 30px 0 46px;
           font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 17px; color: #fff; z-index: 3; }
   #sbar svg { height: 13px; }
@@ -84,50 +111,64 @@
   #hbar { position: absolute; left: 128px; bottom: 8px; width: 134px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.85); z-index: 4; }
   #finger { position: absolute; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: rgba(246,235,230,.8); opacity: 0; z-index: 5; }
   #ring { position: absolute; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; border: 3px solid #f6ebe6; opacity: 0; z-index: 5; }
-  /* textes des appareils, à gauche */
-  .dcap { position: absolute; left: 104px; top: 50%; width: 560px; transform: translateY(-50%); display: none; }
-  .dcap .k { font-weight: 700; font-size: 24px; letter-spacing: .22em; color: var(--blood); margin-bottom: 18px; }
-  .dcap .h { font-weight: 700; font-size: 96px; line-height: 1; text-transform: uppercase; }
-  .dcap .s { font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 34px; line-height: 1.25; color: var(--ash); margin-top: 22px; }
-  #trio-cap { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; display: none; }
-  /* affiche du README (image fixe du trio) : nom en haut, phrase en bas, bouton lecture au centre */
+  /* affiche du README (image fixe) */
   #poster { position: absolute; inset: 0; display: none; }
-  #poster .brand { position: absolute; left: 72px; top: 52px; display: flex; align-items: center; gap: 20px; }
-  #poster .brand img { width: 84px; height: 84px; }
+  #poster .brand { position: absolute; left: 72px; top: 52px; display: flex; align-items: center; gap: 24px; }
+  #poster .brand .tile { width: 92px; height: 92px; }
   #poster .brand b { font-weight: 700; font-size: 76px; letter-spacing: .02em; }
   #poster .line { position: absolute; left: 0; right: 0; bottom: 58px; text-align: center; font-weight: 700; font-size: 54px; text-transform: uppercase; }
   #poster .play { position: absolute; left: 50%; top: 47%; width: 168px; height: 168px; margin: -84px 0 0 -84px; border-radius: 50%;
                   background: rgba(12,3,4,.86); border: 4px solid var(--blood); display: grid; place-items: center; }
   #poster .play i { display: block; width: 0; height: 0; border-left: 58px solid var(--blood); border-top: 36px solid transparent; border-bottom: 36px solid transparent; margin-left: 12px; }
-  #trio-cap .h { font-weight: 700; font-size: 64px; text-transform: uppercase; line-height: 1; }
 
-  /* ---------- partie 3 : la mort, la relève, la fin ---------- */
-  #end { background: var(--ink); gap: 22px; }
-  #end img { width: 170px; height: 170px; object-fit: contain; }
-  #end .word { font-size: 140px; }
-  #end .tag { font-size: 40px; }
-  #end .pill { background: var(--blood); color: var(--ink); font-weight: 700; font-size: 30px; letter-spacing: .16em; padding: 10px 26px 8px; margin-top: 14px; }
-  #end .url { font-weight: 600; font-size: 60px; letter-spacing: .01em; }
-  #end .lic { font-family: 'Barlow', sans-serif; font-weight: 500; font-size: 26px; color: var(--dust); margin-top: 4px; }
-  #fade { position: absolute; inset: 0; background: var(--ink); opacity: 0; pointer-events: none; }
+  /* ---------- effets ---------- */
+  #mark { position: absolute; display: none; align-items: center; gap: 14px; padding: 10px 18px 10px 10px; border-radius: 18px; background: rgba(12,3,4,.5); backdrop-filter: blur(10px); }
+  #mark .tile { width: 56px; height: 56px; box-shadow: 0 6px 16px rgba(0,0,0,.4); }
+  #mark b { font-weight: 700; font-size: 28px; letter-spacing: .03em; }
+  #vig { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,.42) 100%); }
+  #grade { position: absolute; inset: 0; pointer-events: none; background: #000; opacity: 0; }
+  #flash { position: absolute; inset: 0; pointer-events: none; background: #fff; opacity: 0; mix-blend-mode: screen; }
+  #streak { position: absolute; left: 0; right: 0; height: 4px; top: 50%; pointer-events: none; opacity: 0; mix-blend-mode: screen;
+            background: linear-gradient(90deg, rgba(255,60,60,0), rgba(255,235,230,.95) 50%, rgba(255,60,60,0)); box-shadow: 0 0 24px 6px rgba(255,40,40,.55), 0 0 90px 20px rgba(255,30,30,.25); }
+  #sparks { position: absolute; inset: 0; pointer-events: none; }
+  #black.card { background: #000; }
+  #death.card { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: #000; }
+  #death .ln { font-size: 150px; --maxw: 1700px; } html.v #death .ln { font-size: 128px; --maxw: 880px; }
 </style></head>
 <body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="f-blur" x="-10%" y="-2%" width="120%" height="104%" color-interpolation-filters="sRGB"><feGaussianBlur id="f-blur-g" stdDeviation="0 0"/></filter>
+  <filter id="f-rgb" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence id="f-turb" type="fractalNoise" baseFrequency="0.00001 0.045" numOctaves="1" seed="3" result="n"/>
+    <feComponentTransfer in="n" result="s"><feFuncR type="discrete" tableValues="0.5 0.5 0.2 0.5 0.85 0.5 0.5 0.35"/><feFuncB type="discrete" tableValues="0.5"/></feComponentTransfer>
+    <feDisplacementMap id="f-disp" in="SourceGraphic" in2="s" scale="0" xChannelSelector="R" yChannelSelector="B" result="d"/>
+    <feColorMatrix in="d" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="r"/>
+    <feOffset id="f-off-r" in="r" dx="0" dy="0" result="r2"/>
+    <feColorMatrix in="d" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="g"/>
+    <feColorMatrix in="d" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="b"/>
+    <feOffset id="f-off-b" in="b" dx="0" dy="0" result="b2"/>
+    <feBlend in="r2" in2="g" mode="screen" result="rg"/>
+    <feBlend in="rg" in2="b2" mode="screen"/>
+  </filter>
+</svg>
 <div id="stage">
+<div id="scene"></div>
 
 <template id="tpl-salle">
   <iframe id="app" src="/?render=force"></iframe>
-  <div id="hook"><div class="mask"><div class="l"><span>Son capital,</span></div></div><div class="mask"><div class="l"><span>c'est sa <em>vie.</em></span></div></div></div>
-  <div id="title" class="panel"><img src="/logo.png" alt=""><div class="word" id="w1"></div><div class="tag" id="t1">Un agent de trading autonome.</div></div>
-  <div class="cap bl" id="c-trade"><div class="mask"><div class="h">Il trade <em>seul.</em></div></div><div class="mask"><div class="s">LONG, SHORT, et un stop posé à chaque fois.</div></div></div>
-  <div class="cap tl" id="c-chat"><div class="mask"><div class="h">Tu lui <em>parles.</em></div></div><div class="mask"><div class="s">Il te répond en direct, comme sur une messagerie.</div></div></div>
+  <div id="band"></div>
+</template>
+
+<template id="tpl-mort">
+  <iframe id="app" src="/?render=force"></iframe>
 </template>
 
 <template id="tpl-appareils">
   <div id="devs">
     <div class="glow" id="g-mon"></div><div class="glow" id="g-tv"></div><div class="glow" id="g-ph"></div>
-    <div class="dev" id="tv"><div class="board"><i></i><i></i></div><div class="scr"><iframe id="a-tv" src="/?render=force"></iframe></div><div class="led"></div><div class="foot l"></div><div class="foot r"></div></div>
+    <div class="dev" id="tv"><div class="board"></div><div class="scr"><iframe id="a-tv" src="/?render=force"></iframe></div><div class="led"></div><div class="foot l"></div><div class="foot r"></div></div>
     <div class="dev" id="mon"><div class="scr"><div class="win">
-      <div class="bb"><span class="dots"><i></i><i></i><i></i></span><span class="tabx"><img src="/favicon.png" alt="">RedRock</span><span class="url"><b>localhost</b>:8750</span></div>
+      <div class="bb"><span class="dots"><i></i><i></i><i></i></span><span class="tabx"><img src="/icon-192.png" alt="">RedRock</span><span class="url"><b>localhost</b>:8750</span></div>
       <iframe id="a-pc" src="/?render=force"></iframe></div></div><div class="neck"></div><div class="base"></div></div>
     <div class="dev" id="ph"><div class="body"><div class="scr">
       <div id="home"><div class="grid" id="grid"></div><div class="dock" id="dock"></div></div>
@@ -140,136 +181,407 @@
       <div id="island"></div><div id="hbar"></div>
       <div id="finger"></div><div id="ring"></div>
     </div></div></div>
-    <div class="dcap" id="d-pc"><div class="mask"><div class="k">NAVIGATEUR</div></div><div class="mask"><div class="h">Sur ton <em>PC.</em></div></div><div class="mask"><div class="s">L'app s'ouvre dans ton navigateur.</div></div></div>
-    <div class="dcap" id="d-tv"><div class="mask"><div class="k">MODE TV</div></div><div class="mask"><div class="h">Sur ta <em>TV.</em></div></div><div class="mask"><div class="s">La salle en plein écran, l'écran reste allumé.</div></div></div>
-    <div class="dcap" id="d-tel"><div class="mask"><div class="k">APPLI INSTALLÉE</div></div><div class="mask"><div class="h">Sur ton <em>téléphone.</em></div></div><div class="mask"><div class="s">Une icône sur l'écran d'accueil, comme une vraie app.</div></div></div>
-    <div id="trio-cap"><div class="mask"><div class="h">Le même agent, <em>partout.</em></div></div></div>
-    <div id="poster"><div class="brand"><img src="/logo.png" alt=""><b>REDROCK</b></div><div class="play"><i></i></div>
+    <div id="poster"><div class="brand"><div class="tile"><img src="/icon-512.png" alt=""></div><b>REDROCK</b></div><div class="play"><i></i></div>
       <div class="line">Un agent de trading <em>qui doit gagner sa vie.</em></div></div>
   </div>
+  <div class="card" id="end"><div class="halo" id="end-halo"></div><div class="tile" id="end-tile"><img src="/icon-512.png" alt=""><i class="glow"></i><i class="shine"></i></div>
+    <div class="word" id="w-end"></div><div class="tag" data-txt="slogan">Un agent de trading autonome qui doit gagner sa vie.</div>
+    <div class="pill" data-txt="open source">OPEN SOURCE</div><div class="url" data-txt="adresse">github.com/ponthieutheo/redrock</div><div class="lic" data-txt="licences">Code MIT · personnage PolyForm Noncommercial</div></div>
 </template>
 
-<template id="tpl-fin">
-  <iframe id="app" src="/?render=force"></iframe>
-  <div class="cap" id="c-mort" style="top: 620px"><div class="mask"><div class="h">S'il perd trop,</div></div><div class="mask"><div class="h"><em>il meurt.</em></div></div><div class="mask"><div class="s">−35 % depuis son plus haut : le broker l'arrête.</div></div></div>
-  <div class="cap tl" id="c-releve"><div class="mask"><div class="h">Le suivant</div></div><div class="mask"><div class="h"><em>prend la relève.</em></div></div><div class="mask"><div class="s">Il hérite des leçons de ses ancêtres.</div></div></div>
-  <div id="end" class="panel"><img src="/logo.png" alt=""><div class="word" id="w2"></div><div class="tag">Un agent de trading autonome qui doit gagner sa vie.</div>
-    <div class="pill">OPEN SOURCE</div><div class="url">github.com/ponthieutheo/redrock</div><div class="lic">Code MIT · personnage PolyForm Noncommercial</div></div>
-</template>
-
-<div id="fade"></div>
+<div id="grade"></div>
+<div id="vig"></div>
+<div id="type"></div>
+<div class="card" id="title"><div class="halo" id="title-halo"></div><div class="tile" id="title-tile"><img src="/icon-512.png" alt=""><i class="glow"></i><i class="shine"></i></div>
+  <div class="k" data-txt="voici">VOICI</div><div class="word" id="w-title"></div><div class="tag" data-txt="sous-titre">Un agent de trading autonome.</div></div>
+<div id="mark" data-txt="filigrane"><div class="tile"><img src="/icon-192.png" alt=""></div><b>RedRock</b></div>
+<div id="hello" data-txt="salut">Salut !</div>
+<canvas id="sparks"></canvas>
+<div id="black" class="card"></div>
+<div id="death" class="card"><div class="ln" data-txt="il meurt"><span class="w">…IL</span><span class="w"><em>MEURT.</em></span></div></div>
+<div id="flash"></div>
+<div id="streak"></div>
 </div>
 <script src="/media/comp.js"></script>
 <script>
 const {seg, clamp, E, $} = C;
-const PART = new URLSearchParams(location.search).get("part") || "salle";
-const POSTER = new URLSearchParams(location.search).get("poster") === "1";   // affiche du README (render.py --poster)
-// instants clés (s), partagés avec music.py (120 BPM : un temps = 0,5 s) ; chaque coupe tombe sur un temps
-const T = {titre: 2.0, salle: 4.0, chat: 6.0, appareils: 8.0, tv: 9.5, tel: 11.0, tap: 11.4, trio: 13.0, enjeu: 14.0, mort: 16.0, tombe: 17.6, releve: 18.0, fin: 20.0, dur: 22.0};
-const PARTS = {salle: [0, T.appareils], appareils: [T.appareils, T.enjeu], fin: [T.enjeu, T.dur]};
+const Q = new URLSearchParams(location.search);
+const PART = Q.get("part") || "salle";
+const V = Q.get("fmt") === "v";                       // vidéo verticale 1080×1920 (TikTok, Shorts, Reels)
+const POSTER = Q.get("poster") === "1";              // affiche du README (render.py --poster)
+document.documentElement.className = V ? "v" : "h";
+const FW = V ? 1080 : 1920, FH = V ? 1920 : 1080;
+// zone sûre des réseaux en vertical : ni le haut (8 %), ni le bas (20 %), ni la colonne de droite (12 %)
+const SAFE = V ? {l: 40, t: 154, r: 950, b: 1536} : null;
+// instants clés (s), partagés avec music.py (120 BPM : un temps = 0,5 s) ; chaque coupe et chaque mot tombe sur un temps
+const T = {salut: 0.5, hook1: 2.0, hook2: 4.0, titre: 6.0, trade: 8.0, trade2: 9.0, chat: 10.0, envoi: 10.5, vie: 12.0, seuil: 13.5,
+           ralenti: 15.0, hatch: 15.8, mort: 16.0, noir: 16.25, meurt: 16.5, silence: 17.0, tombe: 17.5, releve: 18.0, atterrit: 18.6,
+           appareils: 20.0, tv: 21.0, tel: 22.0, tap: 22.4, fin: 24.0, dur: 26.5};
+const PARTS = {salle: [0, T.vie], mort: [T.vie, T.appareils], appareils: [T.appareils, T.dur]};
 { const host = document.createElement("div"); host.className = "part"; host.id = "P-" + PART; host.style.display = "block";
-  host.appendChild($("tpl-" + PART).content.cloneNode(true)); $("stage").insertBefore(host, $("fade")); }
+  host.appendChild($("tpl-" + PART).content.cloneNode(true)); $("scene").appendChild(host);
+  // les cartes plein cadre vivent dans leur partie : on ne garde que celles qui servent
+  if (PART !== "salle") $("title").remove(); }
 
-// ---------- outils d'animation ----------
+// ---------- outils ----------
 const px = v => v.toFixed(2) + "px";
-function rows(el, t, a, b, stag = .06) {   // lignes qui montent d'un masque à `a`, repartent vers le haut à `b`
-  const vis = t >= a - 1e-6 && t < b + .3;
-  el.style.display = vis ? "block" : "none";
-  if (!vis) return;
-  [...el.querySelectorAll(".mask > *")].forEach((r, i) => {
-    const k = seg(t, a + i * stag, a + i * stag + .32, E.out4), o = seg(t, b + i * .03, b + i * .03 + .22, E.io);
-    r.style.transform = `translateY(${((1 - k) * 110 - o * 110).toFixed(1)}%)`; });
-}
-// plaque noire : s'ouvre de gauche à droite à `a`, ses lignes montent ; elle disparaît net à `b` (toujours une coupe
-// de plan : pas de fondu qui laisserait traîner une lamelle grise). Une ligne pas encore arrivée (rowsAt) ne prend
-// aucune place : la plaque grandit vers le bas quand elle arrive.
-function plate(el, t, a, b, rowsAt) {
-  const vis = t >= a - 1e-6 && t < b - 1e-6;
-  el.style.display = vis ? "block" : "none"; if (!vis) return;
-  const open = seg(t, a, a + .2, E.out4);
-  el.style.clipPath = `inset(0 ${((1 - open) * 100).toFixed(2)}% 0 0)`;
-  [...el.querySelectorAll(".mask > *")].forEach((r, i) => {
-    const at = rowsAt && rowsAt[i] != null ? rowsAt[i] : a + i * .04;
-    r.parentNode.style.display = t >= at - 1e-6 || !rowsAt ? "block" : "none";
-    const k = seg(t, at, at + .26, E.out4); r.style.transform = `translateY(${((1 - k) * 70).toFixed(1)}%)`; });
-}
-// cadrage de l'app (1280×720) : le point (ax, ay) de l'app est posé en (fx, fy) dans l'image, agrandi ×1,5×z
-function frameApp(el, ax, ay, fx, fy, z) {
-  const S = 1.5 * z;
-  el.style.transform = `translate(${px(fx - ax * S)}, ${px(fy - ay * S)}) scale(${S.toFixed(5)})`;
-}
-const HEAD = [656, 467];   // la tête du perso dans l'app 1280×720 (vue d'ensemble)
+const outBack = x => { const c = 1.9, d = c + 1; return 1 + d * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
 const noTalk = (w, all) => C.noTalk(w, all);
-// logo et nom frappés sur le temps fort : visibles dès la première image, ils se posent en 0,3 s
-function slam(img, word, t, a) {
-  const k = seg(t, a, a + .3, E.out4);
-  img.style.transform = `scale(${(1.14 - .14 * k).toFixed(4)})`;
-  word.style.transform = `scale(${(1.08 - .08 * k).toFixed(4)})`;
-  word.style.letterSpacing = `${(.08 - .06 * k).toFixed(4)}em`;
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+// Bloc de texte cinétique : lignes [texte, instant, classe] ; mots *rouges* entre astérisques. Chaque mot surgit
+// (échelle, flou, bascule 3D) sur son temps ; le bloc s'efface en 0,14 s avant `b` (ou net si `cut`).
+function makeBlock(id, lines, pos, opt = {}) {
+  const el = document.createElement("div"); el.className = "blk"; el.id = id;
+  Object.assign(el.style, pos);
+  if (opt.size) el.style.fontSize = opt.size + "px";
+  if (opt.maxw) el.style.setProperty("--maxw", opt.maxw + "px");
+  if (opt.align === "center") el.style.textAlign = "center";
+  el.innerHTML = (opt.glass ? '<div class="glass"></div>' : "") + lines.map(([txt, at, cls], i) =>
+    `<div class="ln ${cls || ""}" data-txt="${txt.replace(/\*/g, "")}" data-at="${at}"${opt.align === "center" ? ' style="margin: 0 auto"' : ""}>` +
+    words(txt).join("") + "</div>").join("");
+  $("type").appendChild(el);
+  return {el, a: opt.a, b: opt.b, cut: opt.cut};
+}
+// mots d'une ligne ; *rouge* peut couvrir plusieurs mots (« *−35 %* »)
+function words(txt) {
+  let red = false;
+  return txt.split(" ").map(w => {
+    const open = w.startsWith("*"), body = open ? w.slice(1) : w, ci = body.indexOf("*");
+    if (open) red = true;
+    const inner = ci >= 0 ? body.slice(0, ci) + body.slice(ci + 1) : body, r = red;
+    if (ci >= 0) red = false;
+    return `<span class="w">${r ? `<em>${inner}</em>` : inner}</span>`; });
+}
+function popWord(w, t, at) {
+  const k = clamp((t - at) / .24), o = seg(t, at, at + .07, E.lin), b = (1 - seg(t, at, at + .18, E.out)) * 16;
+  const sc = 1.45 - .45 * outBack(k), rx = (1 - E.out(k)) * 55, ty = (1 - E.out(k)) * 28;
+  w.style.opacity = o.toFixed(3);
+  w.style.transform = `perspective(900px) translateY(${ty.toFixed(1)}px) rotateX(${rx.toFixed(1)}deg) scale(${sc.toFixed(4)})`;
+  w.style.filter = b > .05 ? `blur(${b.toFixed(2)}px)` : "none";
+}
+function runBlock(B, t) {
+  const {el, a, b, cut} = B, vis = t >= a - 1e-6 && t < b - 1e-6;
+  el.style.display = vis ? "block" : "none"; if (!vis) return;
+  const gl = el.querySelector(".glass");
+  if (gl) { const k = seg(t, a, a + .16, E.out4); gl.style.clipPath = `inset(0 ${((1 - k) * 100).toFixed(2)}% 0 0)`; }
+  const out = cut ? 0 : seg(t, b - .14, b, E.io);
+  el.style.opacity = (1 - out).toFixed(3);
+  el.style.filter = out > .01 ? `blur(${(out * 10).toFixed(2)}px)` : "none";
+  el.style.transform = out > .01 ? `scale(${(1 + .05 * out).toFixed(4)})` : "none";
+  el.querySelectorAll(".ln").forEach(ln => {
+    const at = +ln.dataset.at, on = t >= at - 1e-6;
+    ln.style.visibility = on ? "visible" : "hidden";
+    [...ln.querySelectorAll(".w")].forEach((w, i) => popWord(w, t, at + i * .05));
+  });
 }
 
-// ---------- partie 1 : accroche, titre, la salle, le chat (0 → 8 s) ----------
+// effets globaux : secousse, flash, traînée de lumière, flou de mouvement, aberration chromatique + bug, étalonnage
+const FX = {shakes: [], flashes: [], streaks: [], blurs: [], glitch: [], grade: [], moves: []};
+function shakeAt(t) {
+  let x = 0, y = 0, r = 0, m = 0;
+  for (const [t0, amp, dur] of FX.shakes) {
+    if (t < t0 || t > t0 + dur) continue;
+    const d = Math.exp(-(t - t0) / (dur / 3.2)) * amp, u = (t - t0) * 60;
+    x += d * (Math.sin(u * 1.9) * .6 + Math.sin(u * 3.7 + 1.3) * .4);
+    y += d * (Math.sin(u * 2.3 + .7) * .6 + Math.sin(u * 4.1 + 2.1) * .4);
+    r += d * .02 * Math.sin(u * 1.7 + .4);
+    m += d;
+  }
+  return [x, y, r, m];
+}
+function fxFrame(t) {
+  const [sx, sy, sr, sm] = shakeAt(t);   // la secousse agrandit un peu l'image : jamais de bord noir
+  $("stage").style.transform = sm > .05 ? `translate(${px(sx)}, ${px(sy)}) rotate(${sr.toFixed(3)}deg) scale(${(1 + 2.6 * sm / Math.min(FW, FH)).toFixed(5)})` : "none";
+  let fo = 0; for (const [t0, a, tau, col] of FX.flashes) if (t >= t0 - 1e-6) { const v = a * Math.exp(-(t - t0) / tau); if (v > fo) { fo = v; $("flash").style.background = col || "#fff"; } }
+  $("flash").style.opacity = fo > .01 ? fo.toFixed(3) : "0";
+  let so = 0, sw = 0, sy2 = .5;
+  for (const [t0, dur, yy] of FX.streaks) if (t >= t0 && t < t0 + dur) { const k = (t - t0) / dur; so = Math.sin(Math.PI * Math.min(1, k * 1.6)) * (1 - k); sw = E.out(Math.min(1, k * 2.2)); sy2 = yy; }
+  const st = $("streak"); st.style.opacity = so.toFixed(3); st.style.top = (sy2 * 100).toFixed(1) + "%"; st.style.transform = `scaleX(${sw.toFixed(3)})`;
+  // flou de mouvement (horizontal) et bug : filtres SVG sur la scène (pas sur le texte, qui reste net)
+  // flou : "in" = fort à la coupe puis s'efface, "out" = monte jusqu'à la coupe, sinon une bosse
+  let bl = 0; for (const [t0, t1, peak, kind] of FX.blurs) if (t >= t0 && t <= t1) { const u = (t - t0) / (t1 - t0);
+    bl = Math.max(bl, peak * (kind === "in" ? (1 - u) * (1 - u) : kind === "out" ? u * u : Math.sin(Math.PI * u))); }
+  let gk = 0; for (const [t0, dur] of FX.glitch) if (t >= t0 && t < t0 + dur) gk = 1 - (t - t0) / dur;
+  const filters = [];
+  if (bl > .3) { $("f-blur-g").setAttribute("stdDeviation", `${bl.toFixed(1)} 0`); filters.push("url(#f-blur)"); }
+  if (gk > 0) {
+    const f = Math.floor(t * 30);
+    $("f-turb").setAttribute("seed", String(1 + (f % 17)));
+    $("f-disp").setAttribute("scale", (gk * (V ? 70 : 90) * (.5 + hash(f))).toFixed(1));
+    $("f-off-r").setAttribute("dx", (-gk * 18).toFixed(1)); $("f-off-b").setAttribute("dx", (gk * 18).toFixed(1));
+    filters.push("url(#f-rgb)");
+  }
+  $("scene").style.filter = filters.length ? filters.join(" ") : "none";
+  let g = 0; for (const [t0, t1, a] of FX.grade) if (t >= t0 && t < t1) g = Math.max(g, a * Math.min(1, (t - t0) / .25));
+  $("grade").style.opacity = g.toFixed(3);
+}
+// tuile d'icône : surgit (échelle + flou), pulsation de lueur rouge, reflet qui balaie
+function tileReveal(tile, halo, t, a) {
+  const k = clamp((t - a) / .4), sc = .55 + .45 * outBack(k), b = (1 - seg(t, a, a + .25, E.out)) * 18;
+  tile.style.transform = `scale(${sc.toFixed(4)})`;
+  tile.style.filter = b > .05 ? `blur(${b.toFixed(2)}px)` : "none";
+  tile.style.opacity = seg(t, a, a + .08, E.lin).toFixed(3);
+  const pulse = Math.exp(-Math.pow((t - a - .35) / .22, 2));
+  tile.querySelector(".glow").style.boxShadow = `0 0 ${(40 + 80 * pulse).toFixed(0)}px ${(8 + 20 * pulse).toFixed(0)}px rgba(240,16,28,${(.15 + .55 * pulse).toFixed(3)}) inset`;
+  tile.style.boxShadow = `0 30px 70px rgba(0,0,0,.6), 0 0 0 1.5px rgba(255,255,255,.07), 0 0 ${(30 + 110 * pulse).toFixed(0)}px rgba(240,16,28,${(.18 + .5 * pulse).toFixed(3)})`;
+  tile.querySelector(".shine").style.transform = `translateX(${(-120 + 240 * seg(t, a + .38, a + .9, E.io)).toFixed(1)}%)`;
+  if (halo) { const r = tile.getBoundingClientRect(), s = r.width * 2.4; Object.assign(halo.style, {width: px(s), height: px(s), left: px(r.left + r.width / 2 - s / 2), top: px(r.top + r.height / 2 - s / 2), opacity: (.35 + .65 * pulse).toFixed(3)}); }
+}
+function lettersPop(word, t, a, stag = .035) {
+  [...word.children].forEach((sp, i) => popWord(sp, t, a + i * stag));
+}
+// coup de fouet horizontal : l'image glisse de d px et grossit juste assez pour ne jamais montrer de bord
+const whip = d => `translateX(${px(d)}) scale(${(1 + 2 * Math.abs(d) / FW + .002).toFixed(5)})`;
+// étincelles et confettis (la relève) : chaque particule est une fonction du temps (rendu image par image exact)
+const SP = {bursts: []};
+function sparksFrame(t) {
+  const cv = $("sparks"); if (cv.width !== FW) { cv.width = FW; cv.height = FH; }
+  const x = cv.getContext("2d"); x.clearRect(0, 0, FW, FH);
+  for (const B of SP.bursts) {
+    if (!B.o || t < B.t0 || t > B.t0 + 1.8) continue;
+    const dt = t - B.t0;
+    for (let i = 0; i < B.n; i++) {
+      const a = -Math.PI / 2 + (hash(i + B.seed) - .5) * Math.PI * 1.5, v = (450 + 900 * hash(i * 3.1 + B.seed)) * B.k, life = .9 + .9 * hash(i * 7.7 + B.seed);
+      if (dt > life) continue;
+      const drag = (1 - Math.exp(-dt * 2.2)) / 2.2, px_ = B.o.x + Math.cos(a) * v * drag, py_ = B.o.y + Math.sin(a) * v * drag + 900 * B.k * dt * dt * .5;
+      const fade = 1 - dt / life, kind = i % 5;
+      x.save(); x.translate(px_, py_); x.globalAlpha = Math.min(1, fade * 1.4);
+      if (kind < 3) { x.rotate(dt * (6 + 10 * hash(i)) + i); x.fillStyle = ["#f0101c", "#f6ebe6", "#ffc83d"][kind]; x.fillRect(-7 * B.k, -3.5 * B.k, 14 * B.k, 7 * B.k); }
+      else { x.globalCompositeOperation = "lighter"; const r = (5 + 5 * fade) * B.k, g = x.createRadialGradient(0, 0, 0, 0, 0, r * 3);
+        g.addColorStop(0, "rgba(255,240,220,1)"); g.addColorStop(.3, "rgba(255,80,60,.8)"); g.addColorStop(1, "rgba(255,0,0,0)"); x.fillStyle = g; x.beginPath(); x.arc(0, 0, r * 3, 0, Math.PI * 2); x.fill(); }
+      x.restore();
+    }
+  }
+}
+// visage du perso dans la composition (pour poser la bulle, l'origine des étincelles)
+const faceOf = id => C.face(id);
+
+// cadrage d'une app : le point (ax, ay) de l'app (px CSS) posé en (fx, fy) de l'image, agrandi base × z ;
+// l'app couvre toujours tout le cadre (on borne la position)
+function frameApp(el, ax, ay, fx, fy, base, z, w, h) {
+  const S = base * z;
+  let x = fx - ax * S, y = fy - ay * S;
+  x = Math.min(0, Math.max(FW - w * S, x)); y = Math.min(0, Math.max(FH - h * S, y));
+  el.style.transform = `translate(${px(x)}, ${px(y)}) scale(${S.toFixed(5)})`;
+}
+
+// ---------- partie 1 : le salut, les questions, le titre, il trade seul, le chat (0 → 12 s) ----------
 function partSalle() {
-  for (const id of ["w1"]) $(id).innerHTML = [..."REDROCK"].map(c => `<span>${c}</span>`).join("");
-  let W;
-  const Q = "Ta journée, ça va ?";
+  const AW = V ? 390 : 1280, AH0 = V ? 1100 : 720, BASE = V ? 1080 / 390 : 1.5;
+  let AH = AH0, W, talk0, sayOk = true;
+  const app = $("app"); app.style.width = AW + "px"; app.style.height = AH + "px";
+  $("w-title").innerHTML = [..."REDROCK"].map(c => `<span>${c}</span>`).join("");
+  // textes (positions par format ; vertical : tout dans la zone sûre)
+  const L = V ? {left: "64px", top: "214px"} : {left: "110px", top: "150px"};
+  const hk = V ? 104 : 96, mw = V ? 880 : 760;
+  const B1 = makeBlock("k-hook1", [["Et si une IA", T.hook1], ["devait gagner", T.hook1 + .5], ["sa *vie* ?", T.hook1 + 1]], L, {size: hk, maxw: mw, glass: true, a: T.hook1, b: T.hook2});
+  const B2 = makeBlock("k-hook2", [["…et *mourir*", T.hook2], ["si elle", T.hook2 + .5], ["échoue ?", T.hook2 + 1]], L, {size: hk, maxw: mw, glass: true, a: T.hook2, b: T.titre, cut: true});
+  const L3 = V ? {left: "64px", top: "1196px"} : {left: "110px", top: "120px"};
+  const B3 = makeBlock("k-trade", [["Il trade *seul*,", T.trade], ["jour et nuit.", T.trade2]], L3, {size: V ? 100 : 92, maxw: mw, glass: true, a: T.trade, b: T.chat});
+  const L4 = V ? {left: "64px", top: "200px"} : {left: "110px", top: "110px"};
+  const B4 = makeBlock("k-chat", [["Tu lui *parles*,", T.chat], ["il te répond.", T.envoi]], L4, {size: V ? 80 : 80, maxw: V ? 880 : 700, glass: true, a: T.chat, b: T.vie - .14});
+  const blocks = [B1, B2, B3, B4];
+  // la bulle « Salut ! »
+  const hello = $("hello"); hello.style.fontSize = (V ? 64 : 54) + "px";
+  const QTXT = "Ta journée, ça va ?";
+  const headY = V ? [1120, 1190] : [540, 540];      // le visage à l'image : pendant le salut, puis pendant les questions
+  let pos = {x: FW / 2, y: headY[0]};                   // où l'on pose la tête de l'app (zoom de l'app : tête au centre de son cadre)
+  FX.shakes.push([0, V ? 14 : 12, .45], [T.titre, 16, .5]);
+  FX.flashes.push([0, .3, .05], [T.hook1, .1, .045], [T.hook2, .18, .05, "#ff3b3b"], [T.titre, .42, .055], [T.trade, .25, .045], [T.trade2, .12, .045], [T.chat, .2, .045]);
+  FX.streaks.push([T.titre, .55, V ? .3 : .26]);
+  FX.blurs.push([T.trade, T.trade + .2, 24, "in"], [T.trade2 + .1, T.trade2 + .7, 10], [T.chat - .12, T.chat, 32, "out"], [T.chat, T.chat + .14, 16, "in"], [T.vie - .14, T.vie, 36, "out"]);
+  FX.grade.push([T.hook2, T.titre, .32]);
   const run = C.timeline([
-    {t: 1.0, fn: () => C.emote(W, "wow")},
-    {t: 2.05, fn: () => { W.__zoom(false); W.__look.hold = 0; }},
-    {t: 3.0, fn: () => C.emote(W, "type")},
-    // coupe à 6 s : le chat est déjà ouvert (on avance l'horloge de l'app d'une seconde sur cette image)
-    {t: T.chat, fn: async () => { W.__chatOpen(); for (let i = 0; i < 6; i++) { C.step(W, 166.7); await C.wait(25); }
-                                  await C.until(() => W.document.querySelectorAll("#chat-log .msg").length >= 4, 3000);
-                                  for (let i = 0; i < 6; i++) { C.step(W, 166.7); await C.wait(10); } }},
-    {t: 6.45, fn: () => fetch("/__gate/on")},
-    {t: 6.5, fn: () => C.submit(W)},
+    {t: T.salut, fn: () => C.emote(W, "salut")},
+    {t: 3.2, fn: () => { sayOk = false; noTalk(W, false); }},
+    {t: T.hook2, fn: () => C.emote(W, "ouch")},
+    // derrière le titre : la caméra revient, puis plonge vers l'écran des positions (on coupe en plein mouvement à 8 s)
+    {t: T.titre, fn: () => { W.__zoom(false); W.__look.hold = 0; }},
+    {t: T.trade - .62, fn: () => W.__shot("positions")},
+    {t: T.trade2, fn: () => W.__shot("historique", "trades")},
+    // coupe à 10 s : le chat est déjà ouvert (vertical : l'app passe en 390×554, le chat tient dans la zone sûre)
+    {t: T.chat, fn: async () => {
+      W.__shot(null);
+      if (V) { AH = 554; app.style.height = AH + "px"; await C.wait(60); }
+      W.__chatOpen(); for (let i = 0; i < 6; i++) { C.step(W, 166.7); await C.wait(25); }
+      await C.until(() => W.document.querySelectorAll("#chat-log .msg").length >= 4, 3000);
+      if (V) W.__zoom(true, .2, 10.5);
+      for (let i = 0; i < 6; i++) { C.step(W, 166.7); await C.wait(10); }
+      if (V) { const p = W.document.querySelector(".chat"); $("band").style.background = p ? W.getComputedStyle(p).backgroundColor : "var(--app)"; $("band").style.top = px(AH * BASE - 2); $("band").style.display = "block"; }
+    }},
+    {t: T.envoi - .05, fn: () => fetch("/__gate/on")},
+    {t: T.envoi, fn: () => C.submit(W)},
   ]);
   return {
-    apps: ["app"], talkOk: [[T.chat, T.appareils]], cuts: [T.titre, T.salle, T.chat], moves: [[3.74, 4.02]],
+    apps: ["app"], talkOk: [[T.salut, 1.6], [T.envoi, T.vie]], cuts: [T.hook1, T.hook2, T.titre, T.trade, T.chat], blanks: [],
+    moves: [[0, .5], [T.hook1, T.hook1 + .5], [T.hook2, T.hook2 + .25], [T.titre - .15, T.titre + .5], [T.trade - .15, T.trade + .35], [T.trade2, T.trade2 + 1.0], [T.chat - .15, T.chat + .2], [T.vie - .2, T.vie]],
     async init() {
       await C.ready("app", 9000);
       W = C.win("app");
-      noTalk(W, false);
-      // chat ouvert à cette largeur : la pastille « Hyperliquid lu à … » de l'app chevauche la roue des réglages
-      C.css(W, ".top .sync { visibility: hidden !important; }");
-      // gros plan sur le visage, il nous regarde
-      W.__look.hold = Date.now() + 1e9; W.__look.tx = 0; W.__look.ty = 10;
-      W.__zoom(true, -.04, 4.6);
-      for (let i = 0; i < 120; i++) { W.__vt.tick(16.6666); if (i % 20 === 19) await C.wait(6); }
+      // pas de bulle de l'app : la bulle « Salut ! » est celle de la composition (la bouche de l'app suit quand même)
+      talk0 = W.talk;
+      W.talk = txt => { if (sayOk && txt === "Salut !") { talk0(txt); W.document.getElementById("say").classList.remove("on"); } };
+      C.css(W, "#say { display: none !important; } .top .sync { visibility: hidden !important; }");
+      // il regarde ailleurs ; la caméra part de loin (toute la salle)
+      W.__look.hold = Date.now() + 1e9; W.__look.tx = 170; W.__look.ty = 30;
+      W.__zoom(true, 0, V ? 17.5 : 15.6);
+      for (let i = 0; i < 160; i++) { W.__vt.tick(16.6666); if (i % 20 === 19) await C.wait(6); }
     },
     async frame(t, dt) {
       await run(t);
-      if (t >= 6.05 && t < 6.45) C.typeInto(W, Q, Math.floor((t - 6.05) / .02) + 1);
-      if (t >= 6.62 && t < 7.7 && Math.round(t * 30) % 2 === 0) await C.release(W);
+      if (t >= T.salut - .05 && t < T.salut + .1) { W.__look.tx = 0; W.__look.ty = 10; }
+      if (t >= T.chat + .05 && t < T.envoi - .05) C.typeInto(W, QTXT, Math.floor((t - T.chat - .05) / .02) + 1);
+      if (t >= T.envoi + .12 && t < T.vie - .3 && Math.round(t * 30) % 2 === 0) await C.release(W);
+      // 0 → 2 : la caméra de l'app fonce sur lui (rampe de vitesse : très vite puis se pose), il se tourne et salue
+      if (t < T.titre) {
+        const D = V ? 13.5 + 4 * Math.pow(1 - seg(t, 0, .9, E.lin), 3) : 5.6 + 10 * Math.pow(1 - seg(t, 0, .9, E.lin), 3);
+        W.__zoom(true, 0, D);
+      }
       C.step(W, dt);
-      // accroche : app décalée à droite (le visage au centre de sa moitié), texte à gauche
-      const hk = t < T.titre;
-      $("hook").style.display = hk ? "flex" : "none";
-      if (hk) {
-        const ls = [...$("hook").querySelectorAll(".l span")];
-        // première ligne là dès la première image (elle se pose), la seconde monte sur le deuxième coup (1 s)
-        const k0 = seg(t, 0, .3, E.out4); ls[0].style.transform = `scale(${(1.08 - .08 * k0).toFixed(4)})`; ls[0].style.transformOrigin = "0 50%";
-        const k1 = seg(t, 1.0, 1.22, E.out4); ls[1].style.transform = `translateY(${((1 - k1) * 105).toFixed(1)}%)`;
+      // cadrage : la tête de l'app est au centre de son cadre (zoom) ; elle glisse pour laisser la place aux questions
+      const app = $("app");
+      if (t < T.titre) {
+        const k = seg(t, T.hook1, T.hook1 + .4, E.out4), punch = 1 + .06 * Math.pow(1 - seg(t, 0, .5, E.out), 2);
+        if (V) { const y = headY[0] + (headY[1] - headY[0]) * k, z = punch + .04 * seg(t, T.hook2, T.titre, E.lin);
+          frameApp(app, AW / 2, AH / 2, FW / 2, y, BASE, z, AW, AH); }
+        else { const z = (1 + .25 * k) * punch + .05 * seg(t, T.hook2, T.titre, E.lin), x = 960 + 230 * k;
+          frameApp(app, AW / 2, AH / 2, x, 540, BASE, z, AW, AH); }
+      } else if (t < T.chat) {
+        // les écrans : l'écran visé est au centre de l'app ; vertical : posé à 800 px (le texte va dessous)
+        frameApp(app, AW / 2, AH / 2, FW / 2, V ? 800 : 540, BASE, 1, AW, AH);
+      } else {
+        if (V) frameApp(app, 0, 0, 0, 0, BASE, 1, AW, AH); else frameApp(app, 640, 360, 960, 540, BASE, 1, AW, AH);
       }
-      // la salle : décalée pendant l'accroche, puis lente avancée sur le perso
-      if (t < T.titre) frameApp($("app"), 640, 360, 1360, 540, 1 + .03 * seg(t, 0, 2, E.lin));
-      else if (t < T.chat) frameApp($("app"), HEAD[0], HEAD[1], HEAD[0] * 1.5, HEAD[1] * 1.5, 1 + .05 * seg(t, T.salle, T.chat, E.lin));
-      else frameApp($("app"), 640, 360, 960, 540, 1);
-      // titre (2 → 4) : logo, nom, phrase ; s'en va vers le haut et découvre la salle à 4 s pile
-      const ti = t >= T.titre && t < T.salle;
-      $("title").style.display = ti ? "flex" : "none";
+      // le salut : bulle de la composition, à côté du visage (côté opposé à la main qui salue)
+      const hv = t >= T.salut + .08 && t < T.hook1 - .02;
+      hello.style.display = hv ? "block" : "none";
+      if (hv) {
+        const f = faceOf("app");
+        if (f) { const bw = hello.offsetWidth, bh = hello.offsetHeight;
+          const bx = V ? f.x - bw * .82 : f.x - f.r * 1.08 - bw, by = V ? f.y - f.r * 1.12 - bh - 16 : f.y - f.r * .55 - bh;
+          hello.style.left = px(Math.max(V ? 64 : 40, bx)); hello.style.top = px(Math.max(V ? 170 : 40, by)); }
+        const k = clamp((t - T.salut - .08) / .26), o = 1 - seg(t, T.hook1 - .16, T.hook1 - .02, E.io);
+        hello.style.setProperty("--ox", V ? "75%" : "95%");
+        hello.style.transform = `scale(${((.3 + .7 * outBack(k)) * (1 - .2 * (1 - o))).toFixed(4)}) rotate(${((1 - k) * -8).toFixed(2)}deg)`;
+        hello.style.opacity = (seg(t, T.salut + .08, T.salut + .14, E.lin) * o).toFixed(3);
+      }
+      // titre (6 → 8) : carte plein cadre, tuile d'icône, VOICI, REDROCK ; traversée (zoom) à 8 s
+      const ti = t >= T.titre && t < T.trade, card = $("title");
+      card.style.display = ti ? "flex" : "none";
       if (ti) {
-        slam($("title").querySelector("img"), $("w1"), t, T.titre);
-        const tg = seg(t, 2.5, 2.8, E.out4); $("t1").style.opacity = tg.toFixed(3); $("t1").style.transform = `translateY(${((1 - tg) * 24).toFixed(1)}px)`;
-        $("title").style.transform = `translateY(${(-seg(t, 3.75, 4.0, E.io) * 100).toFixed(2)}%)`;
+        // tout est déjà en route sur la première image (coupe nette sur le coup)
+        tileReveal($("title-tile"), $("title-halo"), t, T.titre - .1);
+        popWord(card.querySelector(".k"), t, T.titre - .06);
+        lettersPop($("w-title"), t, T.titre - .02);
+        popWord(card.querySelector(".tag"), t, T.titre + .5);
+        // traversée : la carte grossit et se floute (sans fondu), coupe nette à 8 s
+        const z = seg(t, T.trade - .14, T.trade, E.lin);
+        card.style.transform = `scale(${(1 + .04 * seg(t, T.titre, T.trade, E.lin) + 1.4 * z * z).toFixed(4)})`;   // lente avancée, puis traversée
+        card.style.filter = z > .01 ? `blur(${(z * 14).toFixed(2)}px)` : "none";
       }
-      plate($("c-trade"), t, T.salle + .05, T.chat);
-      plate($("c-chat"), t, T.chat + .02, T.appareils);
+      // filigrane pendant le montage
+      const mk = $("mark"), mv = t >= T.trade && t < T.chat;
+      mk.style.display = mv ? "flex" : "none";
+      if (mv) { if (V) { mk.style.left = "64px"; mk.style.top = "176px"; } else { mk.style.left = "48px"; mk.style.top = "968px"; }
+        mk.style.opacity = (seg(t, T.trade + .2, T.trade + .45, E.lin) * (1 - seg(t, T.chat - .12, T.chat, E.lin))).toFixed(3); }
+      // traversée des coupes : le plan suivant arrive en glissant (le flou de mouvement fait le reste)
+      const sc = $("scene");
+      const wo = seg(t, T.chat - .12, T.chat, E.in || (x => x * x * x)), wi = 1 - seg(t, T.chat, T.chat + .14, E.out);
+      const wo2 = seg(t, T.vie - .14, T.vie, x => x * x * x);
+      const zi = 1 - seg(t, T.trade, T.trade + .22, E.out);
+      let tr = "";
+      if (t >= T.chat - .12 && t < T.chat) tr = whip(-wo * 260);
+      else if (t >= T.chat && t < T.chat + .14) tr = whip(wi * 260);
+      else if (t >= T.vie - .14) tr = whip(-wo2 * 300);
+      else if (t >= T.trade && t < T.trade + .22) tr = `scale(${(1 + .18 * zi).toFixed(4)})`;
+      sc.style.transform = tr || "none"; sc.style.transformOrigin = "50% 50%";
+      blocks.forEach(B => runBlock(B, t));
+      fxFrame(t);
+      sparksFrame(t);
     },
+    probeOpt: () => ({talkOk: [[T.salut, 1.6], [T.envoi, T.vie]], safe: SAFE, face: true}),
   };
 }
 
-// ---------- partie 2 : PC, TV, téléphone (8 → 14 s) ----------
+// ---------- partie 2 : l'enjeu, le ralenti, la mort, le noir, la tombe, la relève (12 → 20 s) ----------
+function partMort() {
+  const AW = V ? 390 : 1280, AH = V ? 1100 : 720, BASE = V ? 1080 / 390 : 1.5;
+  const app = $("app"); app.style.width = AW + "px"; app.style.height = AH + "px";
+  let W, head = null, speed = 1;
+  const mw = V ? 880 : 760;
+  const Lt = V ? {left: "64px", top: "1196px"} : {left: "110px", top: "120px"};
+  const B1 = makeBlock("k-vie", [["Son capital,", T.vie], ["c'est sa *vie.*", T.vie + .5]], Lt, {size: V ? 100 : 96, maxw: mw, glass: true, a: T.vie, b: T.seuil, cut: true});
+  const L2 = V ? {left: "64px", top: "190px"} : {left: "110px", top: "250px"};
+  const B2 = makeBlock("k-seuil", [["*−35 %*", T.seuil], ["depuis son plus haut…", T.seuil + .5, "s"]], L2, {size: V ? 230 : 230, maxw: mw, glass: true, a: T.seuil, b: T.ralenti});
+  B2.el.querySelector(".ln.s").style.fontSize = (V ? 50 : 46) + "px";
+  const L3 = V ? {left: "64px", top: "1262px"} : {left: "110px", top: "120px"};
+  const B3 = makeBlock("k-releve", [["Le suivant", T.releve], ["hérite de ses", T.releve + .5], ["*erreurs.*", T.releve + 1]], L3, {size: V ? 80 : 88, maxw: mw, glass: true, a: T.releve, b: T.appareils, cut: true});
+  const blocks = [B1, B2, B3];
+  FX.shakes.push([T.seuil, 9, .4], [T.mort, V ? 30 : 34, .6], [T.tombe, 12, .45], [T.atterrit, 10, .4]);
+  FX.flashes.push([T.vie, .14, .045], [T.seuil, .3, .05, "#ff3030"], [T.mort, .4, .05, "#ff4040"], [T.tombe, .25, .05], [T.atterrit, .35, .07], [T.meurt, .2, .05, "#ff2020"]);
+  FX.glitch.push([T.mort, .25], [T.meurt, .12]);
+  FX.blurs.push([T.vie, T.vie + .16, 12, "in"]);
+  FX.grade.push([T.ralenti, T.noir, .3]);
+  const run = C.timeline([
+    {t: T.seuil, fn: async () => { W.__shot(null); for (let i = 0; i < 70; i++) { C.step(W, 16.6666); if (i % 20 === 19) await C.wait(6); } C.emote(W, "panic"); }},
+    {t: T.ralenti, fn: () => { speed = .25; }},
+    {t: T.hatch, fn: () => { speed = 1; W.__hatch(); }},
+    // la tombe porte le numéro de la génération morte : la génération suivante (4) est donnée juste avant qu'elle surgisse
+    {t: T.tombe + .1, fn: () => { W.hatch = () => {}; W.__hc1 = Object.assign({}, W.__hc1, {generation: 4}); }},
+    // la relève : génération 4 en vie ; la scène avance jusqu'à l'arrivée du remplaçant
+    {t: T.releve, fn: async () => {
+      await C.scenario(W, "naissance");
+      for (let i = 0; i < 2.2 * 60; i++) { W.__vt.tick(16.6666); if (i % 20 === 19) await C.wait(6); }
+    }},
+  ]);
+  return {
+    apps: ["app"], cuts: [T.vie, T.seuil, T.mort, T.noir, T.tombe], blanks: [[T.noir, T.meurt]],
+    moves: [[T.vie, T.vie + .3], [T.seuil, T.seuil + .3], [T.mort - .05, T.noir + .05], [T.meurt - .05, T.meurt + .2], [T.tombe - .05, T.tombe + .5], [T.atterrit - .1, T.atterrit + .5]],
+    async init() {
+      await C.ready("app", 9000);
+      W = C.win("app");
+      noTalk(W, true);
+      C.css(W, ".top .sync { visibility: hidden !important; }");
+      // la tête, vue d'ensemble (sert au cadrage des plans sur le perso)
+      const h = W.__headPx(); head = [h.x, h.y];
+      // 12 s : on arrive en pleine plongée vers la courbe du capital
+      W.__shot("courbe");
+      for (let i = 0; i < 56; i++) { W.__vt.tick(16.6666); if (i % 20 === 19) await C.wait(6); }
+    },
+    async frame(t, dt) {
+      await run(t);
+      if (t >= T.tombe + .1 && t < T.tombe + .25 && W.__hc1 && W.__hc1.generation !== 4) W.__hc1 = Object.assign({}, W.__hc1, {generation: 4});
+      C.step(W, dt * speed);
+      const app = $("app");
+      if (t < T.seuil) frameApp(app, AW / 2, AH / 2, FW / 2, V ? 800 : 540, BASE, 1, AW, AH);
+      else if (t < T.tombe) {
+        // poussée sur le visage (accélère), ralenti (la caméra traîne), coup de zoom au choc
+        const z = 1 + (V ? .3 : .55) * Math.pow(seg(t, T.seuil, T.ralenti, E.lin), 1.6) + (V ? .05 : .08) * seg(t, T.ralenti, T.mort, E.lin) + (V ? .06 : .1) * seg(t, T.mort, T.mort + .1, E.out);
+        frameApp(app, head[0], head[1], V ? 540 : 1180, V ? 1070 : 560, BASE, z, AW, AH);
+      } else frameApp(app, head[0], head[1] - (V ? 0 : 60), V ? 540 : 960, V ? 1090 : 640, BASE, V ? 1 : 1.22, AW, AH);
+      // le noir et « …il meurt. »
+      $("black").style.display = t >= T.noir && t < T.meurt ? "block" : "none";
+      const dv = t >= T.meurt && t < T.tombe;
+      $("death").style.display = dv ? "flex" : "none";
+      if (dv) { const ln = $("death").querySelector(".ln"); [...ln.querySelectorAll(".w")].forEach((w, i) => popWord(w, t, T.meurt - .034 + i * .12));
+        const g = Math.max(0, 1 - (t - T.meurt) / .3); ln.style.textShadow = g > .01 ? `${(-8 * g).toFixed(1)}px 0 rgba(255,0,40,${(.8 * g).toFixed(2)}), ${(8 * g).toFixed(1)}px 0 rgba(0,220,255,${(.6 * g).toFixed(2)})` : "none"; }
+      // l'atterrissage du remplaçant : étincelles et confettis depuis sa tête
+      if (t >= T.atterrit - .02 && !SP.bursts.length) { const f = faceOf("app"); if (f) SP.bursts.push({t0: T.atterrit, o: {x: f.x, y: f.y - f.r * .6}, n: 110, seed: 7, k: V ? 1.25 : 1.1}); }
+      // traversée à 12 s (arrivée en glissant) et à 13,5 s (on traverse vers le visage)
+      const sc = $("scene");
+      if (t < T.vie + .16) sc.style.transform = whip((1 - seg(t, T.vie, T.vie + .16, E.out)) * 300);
+      else if (t >= T.seuil && t < T.seuil + .25) sc.style.transform = `scale(${(1 + .25 * (1 - seg(t, T.seuil, T.seuil + .25, E.out))).toFixed(4)})`;
+      else sc.style.transform = "none";
+      blocks.forEach(B => runBlock(B, t));
+      fxFrame(t);
+      sparksFrame(t);
+    },
+    probeOpt: () => ({talkOk: [], safe: SAFE, face: true}),
+  };
+}
+
+// ---------- partie 3 : PC, TV, téléphone, carte de fin (20 → 26,5 s) ----------
 function partAppareils() {
   const ICONS = [["#3b2427", "circle"], ["#2c3138", "notes"], ["#4a3a1c", "sun"], ["#262a33", "clock"], ["#23352b", "map"], ["#3a2238", "music"],
                  ["#1f3140", "bubble"], ["redrock"], ["#33302c", "gear"], ["#2f2a3f", "cam"], ["#3d2a22", "cal"], ["#24323a", "mail"]];
@@ -291,23 +603,21 @@ function partAppareils() {
     : `<div class="ico"><div class="sq" style="background:${c}"><svg viewBox="0 0 34 34">${GLYPH[g]}</svg></div><span>${name}</span></div>`;
   $("grid").innerHTML = ICONS.map((x, i) => ico(x[0], x[1], NAMES[i])).join("");
   $("dock").innerHTML = [["#2a3a2c", "bubble"], ["#2c2e38", "mail"], ["#3a2a2a", "music"], ["#30303a", "cam"]].map(x => ico(x[0], x[1], "")).join("");
-  let P, V, M;   // fenêtres des trois apps : PC, TV, téléphone
-  // poses : [x du centre, y du centre, échelle] ; tailles naturelles : écran 1480×1048, TV 1628×990, téléphone 416×870
+  $("w-end").innerHTML = [..."REDROCK"].map(c => `<span>${c}</span>`).join("");
+  let P, TV, M;
   const SIZE = {mon: [1480, 1048], tv: [1628, 1110], ph: [416, 870]};
-  const FOCUS = {mon: [1250, 560, .78], tv: [1250, 560, .72], ph: [1250, 548, 1.0]};
+  // une pose par appareil (centre x, centre y, échelle) ; vertical : grand et centré, dans la zone sûre
+  const FOCUS = V ? {mon: [540, 990, .554], tv: [540, 990, .504], ph: [540, 1000, 1.08]} : {mon: [1290, 560, .82], tv: [1290, 560, .75], ph: [1200, 548, 1.12]};
   const TRIO = {mon: [585, 640, .41], tv: [960, 440, .52], ph: [1395, 640, .56]};
-  const IN = {mon: T.appareils, tv: T.tv, ph: T.tel}, OUT = {mon: T.tv, tv: T.tel, ph: T.trio};
+  const IN = {mon: T.appareils, tv: T.tv, ph: T.tel}, OUT = {mon: T.tv, tv: T.tel, ph: T.fin};
+  // coup de fouet : l'appareil arrive de la droite en 0,18 s et repart à gauche en 0,12 s (flou de mouvement)
   function pose(d, t) {
-    const f = FOCUS[d], tr = TRIO[d];
-    if (t >= T.trio - .02) {   // le trio : chacun rejoint sa place (le PC et la TV reviennent d'en bas)
-      const k = seg(t, T.trio + (d === "ph" ? 0 : d === "tv" ? .04 : .08), T.trio + .42 + (d === "ph" ? 0 : d === "tv" ? .04 : .08), E.out4);
-      const from = d === "ph" ? f : [tr[0], tr[1] + 760, tr[2]];
-      return {x: from[0] + (tr[0] - from[0]) * k, y: from[1] + (tr[1] - from[1]) * k, s: from[2] + (tr[2] - from[2]) * k, o: d === "ph" ? 1 : clamp(k * 3)};
-    }
-    // l'appareil suivant arrive pendant que le précédent s'en va : jamais d'image vide entre les deux
-    if (t < IN[d] - .07 || t >= OUT[d] + .1) return {o: 0};
-    const a = seg(t, IN[d] - .07, IN[d] + .3, E.back), z = d === "ph" ? 0 : seg(t, OUT[d] - .1, OUT[d] + .08, E.io);
-    return {x: f[0], y: f[1] + (1 - a) * 110 - z * 90, s: f[2] * (.92 + .08 * a) * (1 - .06 * z), o: (1 - z) * clamp(.75 + 2 * a)};
+    if (POSTER) { const p = TRIO[d]; return {x: p[0], y: p[1], s: p[2], o: 1}; }
+    const f = FOCUS[d];
+    if (t < IN[d] - 1e-6 || t >= OUT[d] - 1e-6) return {o: 0};
+    const a = seg(t, IN[d] - .06, IN[d] + .16, E.out4), z = d === "ph" ? 0 : seg(t, OUT[d] - .12, OUT[d], x => x * x);
+    const drift = .03 * seg(t, IN[d], OUT[d], E.lin);
+    return {x: f[0] + (1 - a) * FW * .7 - z * FW * .7, y: f[1], s: f[2] * (1 + drift), o: 1};
   }
   function place(d, t) {
     const p = pose(d, t), el = $(d), g = $("g-" + d);
@@ -315,32 +625,46 @@ function partAppareils() {
     el.style.visibility = "visible"; g.style.visibility = "visible";
     const [w, h] = SIZE[d];
     el.style.transform = `translate(${px(p.x - w * p.s / 2)}, ${px(p.y - h * p.s / 2)}) scale(${p.s.toFixed(4)})`;
-    el.style.opacity = Math.min(1, p.o).toFixed(3);
     g.style.transform = `translate(${px(p.x)}, ${px(p.y + h * p.s / 2 - 4)}) scale(${(p.s * w / 1400 * 1.1).toFixed(4)}, ${(p.s * 1.0).toFixed(4)})`;
-    g.style.opacity = (Math.min(1, p.o) * .9).toFixed(3);
   }
+  const mw = V ? 880 : 800;
+  const Ld = V ? {left: "130px", top: "470px"} : {left: "110px", top: "360px"}, Lp = V ? {left: "130px", top: "214px"} : Ld;
+  const sz = V ? 104 : 112;
+  // 16:9 : deux lignes à gauche de l'appareil ; vertical : une ligne au-dessus
+  const two = (k, a, b, at) => V ? [[k, at, "k"], [a + " " + b, at + .05]] : [[k, at, "k"], [a, at + .05], [b, at + .2]];
+  const D1 = makeBlock("k-pc", two("Navigateur", "Sur ton", "*PC.*", T.appareils), Ld, {size: sz, maxw: V ? 820 : 640, a: T.appareils, b: T.tv, cut: true});
+  const D2 = makeBlock("k-tv", two("Mode TV", "Ta", "*TV.*", T.tv), Ld, {size: sz, maxw: V ? 820 : 640, a: T.tv, b: T.tel, cut: true});
+  const D3 = makeBlock("k-tel", two("Appli installée", "Ton", "*téléphone.*", T.tel), Lp, {size: V ? 96 : 100, maxw: V ? 820 : 680, a: T.tel, b: T.fin - .02});
+  [D1, D2, D3].forEach(B => { const k = B.el.querySelector(".ln.k"); k.style.fontSize = (V ? 36 : 34) + "px"; k.style.marginBottom = "14px"; });
+  const blocks = [D1, D2, D3];
+  FX.shakes.push([T.appareils, 16, .5], [T.tv, 8, .3], [T.tel, 8, .3], [T.fin, 12, .5]);
+  FX.flashes.push([T.appareils, .3, .05], [T.tv, .15, .04], [T.tel, .15, .04], [T.tap + .05, .1, .05], [T.fin, .3, .05]);
+  FX.streaks.push([T.appareils, .5, .5], [T.fin, .6, V ? .26 : .3]);
+  FX.blurs.push([T.appareils, T.appareils + .16, 18, "in"], [T.tv - .12, T.tv, 30, "out"], [T.tv, T.tv + .16, 18, "in"], [T.tel - .12, T.tel, 30, "out"], [T.tel, T.tel + .16, 18, "in"], [T.fin - .12, T.fin, 24, "out"]);
   const run = C.timeline([
-    {t: 8.15, fn: () => C.emote(P, "shades")},
-    {t: T.tv, fn: async () => { await fetch("/__scenario/fete"); await Promise.all([P, V, M].map(w => w.refresh(true))); }},
+    {t: T.tv, fn: async () => { await fetch("/__scenario/fete"); await Promise.all([P, TV, M].map(w => w.refresh(true))); }},
   ]);
   let rr = null;
   return {
-    apps: ["a-pc", "a-tv", "a-tel"], talkOk: [], cuts: [T.appareils, T.tv, T.tel, T.trio], moves: [[T.tv - .15, T.tv + .3], [T.tel - .15, T.tel + .3], [T.tap, T.tap + .5], [T.trio, T.trio + .5]],
+    apps: ["a-pc", "a-tv", "a-tel"], cuts: [T.appareils, T.tv, T.tel, T.fin], blanks: [],
+    moves: [[T.appareils, T.appareils + .3], [T.tv - .15, T.tv + .3], [T.tel - .15, T.tel + .3], [T.tap, T.tap + .6], [T.fin - .15, T.fin + .5]],
     async init() {
       await Promise.all(["a-pc", "a-tv", "a-tel"].map(id => C.ready(id, 6000)));
-      P = C.win("a-pc"); V = C.win("a-tv"); M = C.win("a-tel");
-      for (const w of [P, V, M]) noTalk(w, false);
-      C.css(M, ".pbtn .k { display: none !important; }");   // raccourcis clavier : propres à un ordinateur
-      await V.tvOn(false);
-      for (let i = 0; i < 12000 / 16.6666; i++) { for (const w of [P, V, M]) w.__vt.tick(16.6666); if (i % 20 === 19) await C.wait(6); }   // la TV : bouton « Quitter » parti, bandeau rempli
+      P = C.win("a-pc"); TV = C.win("a-tv"); M = C.win("a-tel");
+      for (const w of [P, TV, M]) noTalk(w, false);
+      C.css(M, ".pbtn .k { display: none !important; }");
+      await TV.tvOn(false);
+      for (let i = 0; i < 12000 / 16.6666; i++) { for (const w of [P, TV, M]) w.__vt.tick(16.6666); if (i % 20 === 19) await C.wait(6); }
+      C.emote(P, "shades");
       const r = $("rr").querySelector(".sq"), s = $("ph").querySelector(".scr").getBoundingClientRect(), b = r.getBoundingClientRect();
-      rr = {x: b.left - s.left, y: b.top - s.top, w: b.width, h: b.height};
+      const k = s.width / 390;
+      rr = {x: (b.left - s.left) / k, y: (b.top - s.top) / k, w: b.width / k, h: b.height / k};
     },
     async frame(t, dt) {
       await run(t);
-      for (const w of [P, V, M]) C.step(w, dt);
+      for (const w of [P, TV, M]) C.step(w, dt);
       for (const d of ["tv", "mon", "ph"]) place(d, t);
-      // téléphone : écran d'accueil, on touche l'icône, l'app s'ouvre depuis l'icône (écran de lancement), puis l'app
+      // téléphone : écran d'accueil, on touche l'icône, l'app s'ouvre depuis l'icône, puis l'app
       const tap = T.tap, fin = $("finger"), ring = $("ring");
       const cx = rr.x + rr.w / 2, cy = rr.y + rr.h / 2;
       for (const el of [fin, ring]) { el.style.left = px(cx); el.style.top = px(cy); }
@@ -352,81 +676,39 @@ function partAppareils() {
       zm.style.display = t >= tap + .04 && t < tap + .75 ? "block" : "none";
       if (t >= tap + .04) {
         const x = rr.x * (1 - op), y = rr.y * (1 - op), w = rr.w + (390 - rr.w) * op, h = rr.h + (844 - rr.h) * op;
-        Object.assign(zm.style, {left: px(x), top: px(y), width: px(w), height: px(h), borderRadius: px(15 + (54 - 15) * op),
-          opacity: (1 - seg(t, tap + .5, tap + .72)).toFixed(3)});
+        Object.assign(zm.style, {left: px(x), top: px(y), width: px(w), height: px(h), borderRadius: px(15 + (54 - 15) * op), opacity: (1 - seg(t, tap + .5, tap + .72)).toFixed(3)});
         const isz = 62 + (128 - 62) * op; Object.assign(zm.querySelector("img").style, {width: px(isz), height: px(isz)});
       }
-      $("pwa").style.opacity = seg(t, tap + .4, tap + .42).toFixed(3);
-      $("home").style.opacity = (1 - seg(t, tap + .38, tap + .42)).toFixed(3);
-      // textes
-      rows($("d-pc"), t, T.appareils, T.tv - .22);
-      rows($("d-tv"), t, T.tv + .02, T.tel - .22);
-      rows($("d-tel"), t, T.tel + .02, T.trio - .25);
-      if (POSTER) { $("poster").style.display = "block"; $("trio-cap").style.display = "none"; }
-      else rows($("trio-cap"), t, T.trio + .12, 99);
-    },
-  };
-}
-
-// ---------- partie 3 : l'enjeu, la mort, la relève, la carte de fin (14 → 22 s) ----------
-function partFin() {
-  $("w2").innerHTML = [..."REDROCK"].map(c => `<span>${c}</span>`).join("");
-  let W;
-  // [instant, agrandissement autour de la tête] : poussée pendant la panique, plan large à la mort, puis à la relève
-  const VIEW = [[T.enjeu, 1.0], [T.mort - .01, 1.18], [T.mort, 1.0], [T.releve - .01, 1.06], [T.releve, 1.0], [T.fin, 1.03]];
-  function zoom(t) {
-    for (let i = VIEW.length - 1; i >= 0; i--) if (t >= VIEW[i][0]) {
-      const a = VIEW[i], b = VIEW[i + 1]; if (!b || b[0] - a[0] < .02) return a[1];
-      return a[1] + (b[1] - a[1]) * (t - a[0]) / (b[0] - a[0]); }
-    return VIEW[0][1];
-  }
-  const run = C.timeline([
-    {t: T.enjeu, fn: () => C.emote(W, "panic")},
-    // la mort : la scène de mort de l'app (yeux en croix à 16 s pile, il vacille, s'affaisse, roule et disparaît)
-    {t: T.mort - .2, fn: () => W.__hatch()},
-    // la tombe qui surgit à 1,9 s de scène porte le numéro de la génération morte : l'app l'écrit d'après la
-    // génération suivante, qu'on lui donne juste avant (l'état complet de la génération 4 arrive à la coupe de 18 s)
-    {t: T.tombe, fn: () => { W.hatch = () => {}; W.__hc1 = Object.assign({}, W.__hc1, {generation: 4}); }},
-    // la relève : génération 4 en vie ; on avance la scène jusqu'à l'arrivée du remplaçant (coupe de plan)
-    {t: T.releve, fn: async () => {
-      await C.scenario(W, "naissance");
-      for (let i = 0; i < 2.2 * 60; i++) { W.__vt.tick(16.6666); if (i % 20 === 19) await C.wait(6); }
-    }},
-  ]);
-  return {
-    apps: ["app"], talkOk: [], cuts: [T.enjeu, T.mort, T.releve, T.fin], moves: [],
-    async init() {
-      await C.ready("app", 9000);
-      W = C.win("app");
-      noTalk(W, true);
-    },
-    async frame(t, dt) {
-      await run(t);
-      if (t >= T.tombe && t < T.tombe + .15 && W.__hc1 && W.__hc1.generation !== 4) W.__hc1 = Object.assign({}, W.__hc1, {generation: 4});
-      C.step(W, dt);
-      frameApp($("app"), HEAD[0], HEAD[1] - 40, HEAD[0] * 1.5, (HEAD[1] - 40) * 1.5, zoom(t));
-      plate($("c-mort"), t, T.enjeu + .03, T.releve, [T.enjeu + .07, T.mort, T.mort + .1]);
-      plate($("c-releve"), t, T.releve + .03, T.fin);
-      // carte de fin : coupe nette à 20 s sur le coup final
-      const on = t >= T.fin;
-      $("end").style.display = on ? "flex" : "none";
+      $("pwa").style.opacity = POSTER ? "1" : seg(t, tap + .4, tap + .42).toFixed(3);
+      $("home").style.opacity = POSTER ? "0" : (1 - seg(t, tap + .38, tap + .42)).toFixed(3);
+      if (POSTER) $("poster").style.display = "block";
+      // carte de fin (24 → 26,5) : tuile qui se résout (lueur, reflet), REDROCK lettre à lettre, open source, adresse, licences
+      const on = t >= T.fin, end = $("end");
+      end.style.display = on ? "flex" : "none";
       if (on) {
-        [...$("end").children].forEach((el, i) => { if (el.id === "w2" || i === 0) return; const k = seg(t, T.fin + .1 + i * .07, T.fin + .45 + i * .07, E.out4);
-          el.style.opacity = k.toFixed(3); el.style.transform = `translateY(${((1 - k) * 26).toFixed(1)}px)`; });
-        slam($("end").querySelector("img"), $("w2"), t, T.fin);
+        end.style.transform = `scale(${(1 + .035 * seg(t, T.fin, T.dur, E.out)).toFixed(4)})`;
+        tileReveal($("end-tile"), $("end-halo"), t, T.fin - .1);
+        lettersPop($("w-end"), t, T.fin - .02);
+        [...end.querySelectorAll("[data-txt]")].forEach((el, i) => popWord(el, t, T.fin + .3 + i * .1));
       }
+      if (POSTER) { end.style.display = "none"; fxFrame(0); return; }
+      blocks.forEach(B => runBlock(B, t));
+      fxFrame(t);
+      sparksFrame(t);
     },
+    probeOpt: () => ({talkOk: [], safe: SAFE, face: false}),
   };
 }
 
-const IMPL = {salle: partSalle, appareils: partAppareils, fin: partFin}[PART]();
+const IMPL = {salle: partSalle, mort: partMort, appareils: partAppareils}[PART]();
 window.COMP = {
-  part: PART, range: PARTS[PART], T,
-  apps: IMPL.apps, cuts: IMPL.cuts, moves: IMPL.moves,
+  part: PART, range: PARTS[PART], T, fmt: V ? "9:16" : "16:9",
+  apps: IMPL.apps, cuts: IMPL.cuts, moves: IMPL.moves, blanks: IMPL.blanks,
   init: () => IMPL.init(),
   frame: (t, dt) => IMPL.frame(t, dt),
-  // contrôle de chaque image (render.py) : bulle de parole jamais, parole (bouche) seulement dans talkOk
-  probe: t => C.probe(IMPL.apps, t, IMPL.talkOk),
+  // contrôle de chaque image (render.py) : bulle de l'app jamais, bouche seulement dans talkOk, textes dans le cadre
+  // (et dans la zone sûre en vertical), jamais sur le visage
+  probe: t => C.probe(IMPL.apps, t, IMPL.probeOpt()),
 };
 </script>
 </body></html>

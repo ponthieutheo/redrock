@@ -84,7 +84,7 @@ open(os.path.join(toolbox, "bots", "sentinel.log"), "w").write("[signal] news : 
 ok("avec la sentinelle : score lu", dash.jev_scores() == {"Un titre": 0.82})
 
 # ---------------------------------------------------------------- noms d'outils : préfixe MCP retiré, quel que soit le serveur
-ok("préfixe du broker privé", dash.tool_name("mcp__clint_broker__place_trade") == "place_trade")
+ok("préfixe du broker privé", dash.tool_name("mcp__redrock_broker__place_trade") == "place_trade")
 ok("préfixe du broker public", dash.tool_name("mcp__redrock_broker__account") == "account")
 ok("préfixe avec tiret", dash.tool_name("mcp__redrock-broker__set_stops") == "set_stops")
 ok("outil de Hermes sans préfixe", dash.tool_name("terminal") == "terminal" and dash.tool_name("web_search") == "web_search")

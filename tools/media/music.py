@@ -1,6 +1,6 @@
 """Musiques des vidéos, entièrement synthétisées ici (numpy) : aucun échantillon, aucun son sous droits.
 
-    python tools/media/music.py teaser musique-teaser.wav          # 22 s, calée sur teaser.html (120 BPM)
+    python tools/media/music.py teaser musique-teaser.wav          # 26,5 s, calée sur teaser.html (120 BPM), les deux formats
     python tools/media/music.py installation musique-install.wav   # boucle calme (100 BPM), durée de install.html
     python tools/media/music.py teaser out.wav --raw                # sans normalisation (pour régler le mix)
 
@@ -431,196 +431,455 @@ def master(path, x, I=-14.0, TP=-1.5, fade_out=0.0):
             "loudnorm": out}
 
 
-# ---------------------------------------------------------------- teaser (22 s, 120 BPM : un temps = 0,5 s, une mesure = 2 s)
+# ---------------------------------------------------------------- teaser v3 (26,5 s, 120 BPM : un temps = 0,5 s, une mesure = 2 s)
+# Bande-annonce moderne, racontée par le son : le cœur du perso (deux coups d'808 saturés) bat dès la première image ;
+# groove trap en demi-temps (808 qui glisse, clap sec, charleston en doubles croches avec des roulements en triolets et
+# en triples croches) ; accords « future bass » (supersaw large, pompe du sidechain) ; un crochet de lead court
+# (mi-la-do… si-la) ; design sonore de bande-annonce : souffles sur chaque mouvement de caméra, cymbale inversée et
+# montée avant les révélations, « braam » + chute de sub sur le titre et la mort, arrêt de bande (ralenti) et
+# bégaiement numérique sur le choc, trait continu du moniteur cardiaque, vrai silence, puis le cœur qui repart et le drop.
 BPM = 120
 BEAT = 60 / BPM
 S16 = BEAT / 4
-# accords : nappe, basse, motif du pluck (rythme 3-3-2 en doubles croches)
+# accords : notes de la nappe/supersaw, fondamentale de l'808
 CH = {
-    "Am": ([57, 60, 64, 69], 33, [76, 69, 72, 76, 74, 72, 69]),
-    "F": ([53, 57, 60, 65], 29, [72, 65, 69, 72, 71, 69, 65]),
-    "C": ([55, 60, 64, 67], 36, [76, 67, 72, 76, 74, 72, 67]),
-    "G": ([55, 59, 62, 67], 31, [74, 67, 71, 74, 72, 71, 67]),
-    "E": ([56, 59, 64, 68], 28, [71, 64, 68, 71, 69, 68, 64]),
+    "Am": ([57, 60, 64, 69], 33), "F": ([53, 57, 60, 65], 29), "C": ([55, 60, 64, 67], 36), "G": ([55, 59, 62, 67], 31),
+    "E": ([56, 59, 64, 68], 28), "Dm": ([57, 62, 65, 69], 26),
 }
-POS, LEN = [0, 3, 6, 8, 10, 12, 14], [3, 3, 2, 2, 2, 2, 2]
-# instants partagés avec teaser.html (secondes)
-T = {"titre": 2.0, "salle": 4.0, "chat": 6.0, "souffle": 7.75, "appareils": 8.0, "tv": 9.5, "tel": 11.0, "tap": 11.4,
-     "trio": 13.0, "enjeu": 14.0, "mort": 16.0, "bonk": 16.967, "tombe": 17.667, "releve": 18.0, "atterrit": 18.567, "fin": 20.0, "dur": 22.0}
-# scène de mort de l'app lancée à 15,8 s : yeux en croix à 16 s, la tête roule à 17 s, la tombe surgit à 17,7 s ;
-# relève : le remplaçant tombe du ciel et rebondit vers 18,6 s
+# instants partagés avec teaser.html (secondes) : chaque coupe et chaque mot qui claque tombe sur un temps
+T = {"salut": 0.5, "hook1": 2.0, "hook2": 4.0, "titre": 6.0, "trade": 8.0, "trade2": 9.0, "chat": 10.0, "envoi": 10.5,
+     "vie": 12.0, "seuil": 13.5, "ralenti": 15.0, "mort": 16.0, "noir": 16.25, "silence": 17.0, "tombe": 17.5, "plop": 17.7,
+     "releve": 18.0, "atterrit": 18.6, "appareils": 20.0, "tv": 21.0, "tel": 22.0, "tap": 22.4, "fin": 24.0, "dur": 26.5}
+# le crochet : (instant dans la phrase, note MIDI, durée) — mi, la, do… si, la (une mesure)
+HOOK = [(0.0, 76, .2), (.25, 81, .2), (.5, 84, .6), (1.25, 83, .2), (1.5, 81, .5)]
+HOOK_SOMBRE = [(0.0, 76, .2), (.25, 81, .2), (.5, 84, .6), (1.25, 83, .2), (1.5, 77, .55)]   # finit sur fa : ça tourne mal
+HOOK_ESPOIR = [(0.0, 76, .2), (.25, 81, .2), (.5, 84, .4), (1.0, 86, .4), (1.5, 88, .5)]     # monte jusqu'au mi aigu
 
 
-def motif(m, t0, ch, bright=1.0, g=1.0, octave=0, inst=None, send=0.22, gate=None):
-    _, _, notes = CH[ch]
-    for p, ln, nt in zip(POS, LEN, notes):
-        t = t0 + p * S16
-        if gate is not None and t >= gate:
-            break
-        d = ln * S16 * 0.9
-        if inst == "lead":
-            m.add("music", lead(nt + octave, d, bright), t, g=g * 0.8, send=send + 0.08)
-        else:
-            m.add("music", pluck(nt + octave, d, bright), t, g=g, send=send)
+def lp_gain(f, fc, order=2):
+    """Gain d'un passe-bas doux (Butterworth idéalisé) à la fréquence f : sert à « filtrer » les harmoniques additives."""
+    return 1 / np.sqrt(1 + (f / np.maximum(fc, 1.0)) ** (2 * order))
 
 
-def drums(m, t0, t1, clap_on=True, hats16=False, open_hats=False, kick_g=1.0, duck=None):
+def saw_stack(f, dur, voices=5, detune=12.0, fc=6000.0, width=0.8, maxf=11000.0):
+    """Supersaw propre : `voices` dents de scie à bande limitée (additives, rien au-dessus de maxf), désaccordées de
+    ±`detune` cents et réparties en stéréo ; fc (nombre ou fonction du temps) = passe-bas sur les harmoniques."""
+    n = int(dur * SR)
+    t = secs(n)
+    fcv = fc(t) if callable(fc) else np.full(n, float(fc))
+    L, R = np.zeros(n), np.zeros(n)
+    for v in range(voices):
+        x = (v / (voices - 1) * 2 - 1) if voices > 1 else 0.0
+        fv = f * 2 ** (x * detune / 1200)
+        ph0 = 1.7 * v
+        sig = np.zeros(n)
+        k = 1
+        while k * fv < maxf:
+            sig += np.sin(2 * np.pi * k * fv * t + ph0 * k) / k * lp_gain(k * fv, fcv)
+            k += 1
+        pan = x * width
+        th = (pan + 1) * np.pi / 4
+        L += sig * np.cos(th)
+        R += sig * np.sin(th)
+    return np.stack([L, R], 1) / voices
+
+
+def supersaw(notes, dur, att=0.01, rel=0.25, fc=5200.0, g=1.0, detune=12.0):
+    """Accord supersaw (future bass) : attaque nette, relâche douce, passe-bas sur les harmoniques."""
+    out = None
+    for nt in notes:
+        x = saw_stack(hz(nt), dur + rel, voices=5, detune=detune, fc=fc)
+        out = x if out is None else out + x
+    n = len(out)
+    t = secs(n)
+    env = np.minimum(1, t / max(att, 1e-3)) * np.clip((dur + rel - t) / rel, 0, 1) ** 2
+    return edges(out * env[:, None] / len(notes) * 0.9 * g, a=0.002, r=0.006)
+
+
+def pluck_lead(m, dur, g=1.0):
+    """Lead du crochet : trois dents de scie un peu désaccordées + octave, filtre qui se referme vite (pluck moderne)."""
+    f = hz(m)
+    fc = lambda t: 900 + 7000 * np.exp(-t * 14)
+    x = saw_stack(f, dur + 0.15, voices=3, detune=9, fc=fc, width=0.5) + 0.35 * saw_stack(2 * f, dur + 0.15, voices=2, detune=6, fc=fc, width=0.7)
+    n = len(x)
+    t = secs(n)
+    env = np.exp(-t * 2.2) * np.minimum(1, t / 0.002)
+    g_ = int(dur * SR)
+    env[g_:] *= np.cos(np.linspace(0, np.pi / 2, n - g_)) ** 2
+    return edges(x * env[:, None] * 0.9 * g, a=0.0015, r=0.004)
+
+
+def b808(m, dur, from_m=None, glide=0.08, drive=2.4, g=1.0):
+    """808 : sinus grave saturé (harmoniques audibles sur un téléphone), petit coup de hauteur à l'attaque,
+    glissé depuis la note précédente (`from_m`) ; longue tenue puis relâche."""
+    n = int((dur + 0.08) * SR)
+    t = secs(n)
+    f1 = hz(m)
+    f0 = hz(from_m) if from_m is not None else f1
+    f = f1 + (f0 - f1) * np.exp(-t / glide * 3) if from_m is not None else f1 * np.ones(n)
+    f = f * (1 + 0.6 * np.exp(-t * 55))
+    x = np.sin(2 * np.pi * np.cumsum(f) / SR)
+    env = np.exp(-t * 0.9) * np.minimum(1, t / 0.003)
+    gt = int(dur * SR)
+    env[gt:] *= np.cos(np.linspace(0, np.pi / 2, n - gt)) ** 2
+    x = np.tanh(drive * x * env) / np.tanh(drive)
+    return edges(x * 0.55 * g, a=0.003, r=0.01)
+
+
+def kick2(punch=1.0, dur=0.38):
+    """Grosse caisse moderne : corps qui plonge vite (180 → 48 Hz), clic court, légère saturation."""
+    t = secs(int(dur * SR))
+    f = 48 + 135 * np.exp(-t * 42)
+    body = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 7.5)
+    click = sos_filter(noise(len(t)), "bandpass", [1800, 6000]) * np.exp(-t * 600) * 0.35 * punch
+    x = np.tanh(1.8 * (body + click)) / np.tanh(1.8)
+    return edges(x, a=0.0005, r=0.03)
+
+
+def clap2(g=1.0):
+    """Clap/snare sec : trois claquements serrés + queue courte + corps tonal (200 Hz)."""
+    n = int(0.36 * SR)
+    t = secs(n)
+    nz = sos_filter(noise(n), "bandpass", [1300, 8500])
+    env = np.zeros(n)
+    for k, off in enumerate((0.0, 0.008, 0.016)):
+        mk = t >= off
+        env[mk] += np.exp(-(t[mk] - off) * 170) * (0.75 if k < 2 else 1.0)
+    mk = t >= 0.016
+    env[mk] += np.exp(-(t[mk] - 0.016) * 16) * 0.38
+    body = np.sin(2 * np.pi * 205 * t) * np.exp(-t * 28) * 0.3
+    return edges((nz / 2.0 * env + body) * g, a=0.0005, r=0.03)
+
+
+def heart(g=1.0, slow=1.0):
+    """Battement de cœur « lub-dub » : deux coups d'808 sourds et saturés (le second plus haut, plus doux, 0,17 s
+    après), avec un peu de médium (le « toc ») pour qu'on l'entende aussi sur un téléphone. slow > 1 : ralenti."""
+    def thump(f0, f1, dur, amp):
+        t = secs(int(dur * slow * SR))
+        f = (f1 + (f0 - f1) * np.exp(-t * 26 / slow)) / slow ** 0.5
+        ph = 2 * np.pi * np.cumsum(f) / SR
+        body = (np.sin(ph) + 0.35 * np.sin(2 * ph)) * np.exp(-t * 12 / slow) * np.minimum(1, t / 0.005)
+        knock = np.sin(2 * np.pi * 150 / slow ** 0.5 * t) * np.exp(-t * 45 / slow) * 0.3
+        return edges((body + knock) * amp, a=0.002, r=0.04)
+    a, b = thump(80, 46, 0.36, 1.0), thump(94, 56, 0.32, 0.68)
+    off = int(0.17 * slow * SR)
+    x = np.zeros(off + len(b))
+    x[:len(a)] += a
+    x[off:off + len(b)] += b
+    return edges(np.tanh(1.5 * x) / np.tanh(1.5) * g, a=0.002, r=0.03)
+
+
+def braam(notes=(33, 40, 45), dur=2.4, g=1.0, dark=False):
+    """« Braam » de bande-annonce : dents de scie graves empilées dont le filtre s'ouvre d'un coup puis se referme,
+    saturées ; long, large."""
+    top = 1400 if dark else 2600
+    fc = lambda t: 120 + top * (1 - np.exp(-t * 14)) * np.exp(-t * 1.3)
+    out = None
+    for nt in notes:
+        x = saw_stack(hz(nt), dur, voices=4, detune=10, fc=fc, width=0.9, maxf=6000)
+        out = x if out is None else out + x
+    t = secs(len(out))
+    env = (1 - np.exp(-t * 40)) * np.exp(-t * 1.2)
+    y = np.tanh(1.7 * out * env[:, None]) / np.tanh(1.7)
+    y = sos_filter(y, "low", 5000, 4)   # la saturation crée des aigus (et du repliement) : on les retire
+    return edges(y * 0.85 * g, a=0.002, r=0.08)
+
+
+def sub_drop(dur=1.8, f0=90.0, f1=28.0, g=1.0):
+    """Chute de sub : sinus qui plonge de f0 à f1, saturé, longue fin."""
+    t = secs(int(dur * SR))
+    f = f1 + (f0 - f1) * np.exp(-t * 2.4)
+    x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 1.3)
+    return edges(np.tanh(1.6 * x) / np.tanh(1.6) * 0.8 * g, a=0.003, r=0.08)
+
+
+def rev_cymbal(dur=1.0, g=1.0):
+    """Cymbale inversée : souffle brillant qui enfle jusqu'au temps fort (fin en 6 ms, pile sur le coup)."""
+    n = int(dur * SR)
+    x = np.linspace(0, 1, n)
+    nz = sos_filter(sos_filter(noise(n), "high", 3000, 2), "low", 13000, 2)
+    shimmer = sos_filter(noise(n), "bandpass", [6000, 11000]) * 0.4
+    return edges((nz + shimmer) * x ** 3.2 * 0.35 * g, a=0.01, r=0.006)
+
+
+def shimmer(dur=1.2, g=1.0):
+    """Paillettes (la relève, les particules) : cloches aiguës en arpège rapide, très douces."""
+    n = int(dur * SR)
+    out = np.zeros(n)
+    for k, m in enumerate((88, 91, 93, 96, 100, 103)):
+        i = int(k * 0.045 * SR)
+        t = secs(n - i)
+        f = hz(m)
+        out[i:] += (np.sin(2 * np.pi * f * t) + 0.3 * np.sin(2 * np.pi * 2.76 * f * t) * np.exp(-t * 6)) * np.exp(-t * 4.5) * 0.18 * np.minimum(1, t / 0.002)
+    return edges(out * g, a=0.002, r=0.05)
+
+
+def flatline(dur=1.0, g=1.0):
+    """Trait continu du moniteur cardiaque, travaillé : deux sinus à 2 Hz d'écart (battement lent), passe-bande,
+    attaque de 15 ms ; le haut s'adoucit au fil de la seconde."""
+    n = int(dur * SR)
+    t = secs(n)
+    x = np.sin(2 * np.pi * 988 * t) + 0.8 * np.sin(2 * np.pi * 990 * t + 0.4) + 0.12 * np.sin(2 * np.pi * 1976 * t) * np.exp(-t * 2)
+    x *= np.minimum(1, t / 0.015)
+    return edges(x * 0.1 * g, a=0.004, r=0.012)
+
+
+def monitor_bip(g=1.0):
+    """Bip du moniteur (avec le cœur) : court, doux, même timbre que le trait continu."""
+    t = secs(int(0.1 * SR))
+    x = (np.sin(2 * np.pi * 988 * t) + 0.8 * np.sin(2 * np.pi * 990 * t)) * np.exp(-t * 18) * np.minimum(1, t / 0.004)
+    return edges(x * 0.1 * g, a=0.003, r=0.012)
+
+
+def text_hit(g=1.0):
+    """Mot qui claque à l'écran : petit souffle court + coup sourd, discret."""
+    w = whoosh(0.16, 0.9)
+    t = secs(len(w))
+    thud = np.sin(2 * np.pi * (70 + 60 * np.exp(-t * 40)) * t) * np.exp(-t * 18) * 0.5
+    return edges((w + thud) * g, a=0.002, r=0.01)
+
+
+def tape_stop(x, t0, dur):
+    """Arrêt de bande à partir de t0 : la lecture ralentit jusqu'à zéro en `dur` s (la hauteur tombe), silence après."""
+    i0, n = int(t0 * SR), int(dur * SR)
+    tau = np.arange(n) / n
+    pos = i0 + np.cumsum((1 - tau) ** 2)            # vitesse 1 → 0 (quadratique)
+    seg_ = np.stack([np.interp(pos, np.arange(len(x)), x[:, c]) for c in (0, 1)], 1)
+    seg_ *= np.cos(np.linspace(0, np.pi / 2, n))[:, None] ** 1.5   # s'éteint avec la vitesse
+    y = x.copy()
+    y[i0:i0 + n] = seg_
+    y[i0 + n:] = 0
+    return y
+
+
+def hats(m, t0, t1, step=S16, g=0.55, pan=0.2):
     t = t0
     while t < t1 - 1e-6:
-        m.add("drums", kick(), t, g=0.65 * kick_g)
-        if duck is not None:
-            duck.append(t)
-        beat = int(round((t - t0) / BEAT))
-        if clap_on and beat % 2 == 1:
-            m.add("drums", clap(), t, g=0.62, send=0.12)
-        last = t + BEAT > t1 + 1e-6   # dernier temps tronqué (souffle avant le refrain) : rien après t1
-        if not last or t + BEAT / 2 < t1 - 1e-6:
-            m.add("drums", hat(), t + BEAT / 2, pan=0.2, g=0.8)
-            if open_hats:
-                m.add("drums", hat(True, 0.7), t + BEAT / 2, pan=0.25, send=0.05)
-        if hats16:
-            for q in (1, 3):
-                if t + q * BEAT / 4 < t1 - 1e-6:
-                    m.add("drums", hat(g=0.45), t + q * BEAT / 4, pan=-0.2)
-        t += BEAT
+        m.add("drums", hat(g=g), t, pan=pan)
+        t += step
 
 
-def bassline(m, t0, ch, bars=1, g=0.55, stop=None):
-    root = CH[ch][1]
-    for i in range(8 * bars):
-        t = t0 + i * BEAT / 2
-        if stop is not None and t >= stop - 1e-6:
-            break
-        note = root + (7 if i % 8 == 7 else 0)
-        m.add("bass", bass(note, BEAT / 2 * 0.82), t, g=g)
-
-
-def roll(m, t0, t1, g0=0.25, g1=0.8, div=4):
+def hat_roll(m, t0, t1, div=8, g0=0.3, g1=0.7):
+    """Roulement de charleston : div coups par temps (6 = triolets de doubles croches, 8 = triples croches)."""
     n = int(round((t1 - t0) / (BEAT / div)))
     for i in range(n):
-        k = i / max(1, n - 1)
-        m.add("drums", snare(g=g0 + (g1 - g0) * k), t0 + i * BEAT / div, pan=0.1 * (-1) ** i, send=0.08)
+        m.add("drums", hat(g=g0 + (g1 - g0) * i / max(1, n - 1)), t0 + i * BEAT / div, pan=0.25 * (-1) ** i)
 
 
-def teaser_song():
-    """Avant la mort (0 → 16 s), coupée net à 16 s."""
-    m = Mix(T["mort"])
+def snare_roll(m, t0, t1, div=4, g0=0.2, g1=0.7):
+    n = int(round((t1 - t0) / (BEAT / div)))
+    for i in range(n):
+        m.add("drums", snare(g=g0 + (g1 - g0) * (i / max(1, n - 1)) ** 1.5), t0 + i * BEAT / div, pan=0.1 * (-1) ** i, send=0.08)
+
+
+def hook(m, t0, notes, g=1.0, octave=0, send=0.25):
+    for dt, nt, d in notes:
+        m.add("music", pluck_lead(nt + octave, d, 1.0), t0 + dt, g=g, send=send)
+
+
+def impact(m, t, g=1.0, dark=False, duck=None):
+    """Coup de bande-annonce : grosse caisse, braam, chute de sub, crash."""
+    m.add("drums", kick2(1.2), t, g=0.85 * g)
+    m.add("fx", braam(dur=2.2, g=0.9 * g, dark=dark), t, send=0.25)
+    m.add("fx", sub_drop(1.8, g=0.7 * g), t)
+    m.add("drums", crash(2.0, 0.6 * g), t, send=0.2)
+    if duck is not None:
+        duck.append(t)
+
+
+def trap_bar(m, t0, chords, duck, hat_rolls=()):
+    """Une mesure de trap en demi-temps : grosse caisse sur 1 (et la « et » du 2), clap sur 3, charleston en doubles
+    croches (roulements aux instants donnés), 808 qui glisse d'un accord à l'autre."""
+    m.add("drums", kick2(), t0, g=0.75)
+    m.add("drums", kick2(0.7), t0 + 0.75, g=0.5)
+    duck += [t0, t0 + 0.75]
+    m.add("drums", clap2(), t0 + 1.0, g=0.7, send=0.12)
+    t = t0
+    while t < t0 + 2.0 - 1e-6:
+        if not any(a - 1e-6 <= t < b - 1e-6 for a, b in hat_rolls):
+            m.add("drums", hat(g=0.75 if int(round((t - t0) / S16)) % 2 else 1.0), t, pan=0.2)
+        t += S16
+    for a, b in hat_rolls:
+        hat_roll(m, a, b, div=6, g0=0.35, g1=0.6)
+
+
+def teaser_vie():
+    """0 → 15 s : jusqu'au ralenti (arrêt de bande sur 15 → 15,4 s)."""
+    m = Mix(15.6)
     duck = []
-    # grille : Am | F | C | G | Am | F | G | E (une mesure = 2 s), puis silence, Am, coup final
-    # 0-2 : accroche. Deux coups sur les deux phrases (0 et 1 s), pluck filtré, nappe
-    for k, tk in enumerate((0.0, 1.0)):
-        m.add("drums", kick(1.2), tk, g=1.0)
-        m.add("fx", sub_boom(1.2, 60, 38, 0.3), tk)
-        m.add("drums", clap(), tk, g=0.35, send=0.3)
-        duck.append(tk)
-    m.add("music", pad(CH["Am"][0], 2.0, att=0.25, bright=0.2), 0.0, g=0.55, send=0.3)
-    motif(m, 0.0, "Am", bright=0.15, g=0.75, send=0.3)
-    # 2-4 : titre. Impact, quatre temps, pluck qui s'ouvre, roulement vers 4 s
-    m.add("drums", crash(g=0.9), T["titre"], send=0.15)
-    m.add("fx", sub_boom(1.6, 58, 32, 0.4), T["titre"])
-    for i in range(4):
-        tk = T["titre"] + i * BEAT
-        m.add("drums", kick(), tk, g=0.85)
-        duck.append(tk)
-    for i in range(8):
-        m.add("drums", hat(g=0.35 + 0.06 * i), T["titre"] + 1.0 + i * BEAT / 4 + BEAT / 8, pan=0.2)
-    m.add("music", pad(CH["F"][0], 2.0, att=0.1, bright=0.3), T["titre"], g=0.55, send=0.3)
-    motif(m, T["titre"], "F", bright=0.45, g=0.85)
-    roll(m, 3.0, 4.0, 0.12, 0.6, div=4)
-    m.add("fx", swell(0.98, 0.8), 3.0)
-    # 4-8 : la salle, le chat. Groove complet ; montée avant les appareils, souffle à 7,75
-    for b, ch in enumerate(["C", "G"]):
-        t0 = T["salle"] + 2 * b
-        drums(m, t0, t0 + 2.0 if b == 0 else T["souffle"], duck=duck)
-        bassline(m, t0, ch, stop=T["souffle"] if b == 1 else None)
-        m.add("music", pad(CH[ch][0], 2.0 if b == 0 else T["souffle"] - t0, bright=0.4, rel=0.2), t0, g=0.5, send=0.3)
-        motif(m, t0, ch, bright=0.9, g=0.9, gate=T["souffle"])
-    m.add("drums", crash(g=0.8), T["salle"], send=0.15)
-    m.add("fx", riser(T["souffle"] - T["chat"], g=0.75), T["chat"])
-    roll(m, 7.0, T["souffle"], 0.15, 0.5, div=4)
-    # 8-14 : les appareils. Le refrain : groove plein, charleston ouvert, lead à l'octave
-    m.add("drums", crash(g=1.0), T["appareils"], send=0.2)
-    m.add("fx", sub_boom(1.8, 62, 30, 0.45), T["appareils"])
-    for b, ch in enumerate(["Am", "F", "G"]):
-        t0 = T["appareils"] + 2 * b
-        drums(m, t0, t0 + 2.0, hats16=True, open_hats=True, duck=duck)
-        bassline(m, t0, ch)
-        m.add("music", pad(CH[ch][0], 2.0, bright=0.5, rel=0.25), t0, g=0.5, send=0.3)
-        motif(m, t0, ch, bright=1.0, g=0.85)
-        motif(m, t0, ch, bright=0.7, g=0.5, octave=12, inst="lead")
-    for tw in (T["tv"], T["tel"]):
+    # 0 : premier coup sur la première image (la caméra fonce sur lui) ; le cœur bat
+    m.add("fx", whoosh(0.7, 1.0), 0.0)
+    m.add("drums", kick2(1.0), 0.0, g=0.7)
+    m.add("fx", sub_drop(1.6, 80, 30, 0.6), 0.0)
+    m.add("music", supersaw(CH["Am"][0], 2.0, att=0.4, rel=0.4, fc=900, g=0.45), 0.0, send=0.35)
+    for tb in (0.0, 1.0, 2.0, 3.0, 4.0, 5.0):
+        m.add("drums", heart(0.95), tb, g=0.95)
+    # 0,5 : « Salut ! » — le crochet, joueur
+    hook(m, T["salut"], HOOK, g=0.75)
+    # 2 → 6 : les questions. Charleston en croches (le temps qui passe), 808 tenue, nappe filtrée qui s'assombrit
+    m.add("fx", text_hit(0.8), T["hook1"])
+    hats(m, T["hook1"] + S16 * 2, T["hook2"], step=BEAT / 2, g=0.75)
+    m.add("bass", b808(29, 1.9, g=0.8), T["hook1"])
+    m.add("music", supersaw(CH["F"][0], 2.0, att=0.2, rel=0.3, fc=1100, g=0.45), T["hook1"], send=0.35)
+    m.add("fx", text_hit(1.0), T["hook2"])
+    m.add("fx", sub_drop(1.4, 70, 28, 0.6), T["hook2"])
+    m.add("bass", b808(28, 1.6, from_m=33, glide=0.15, g=0.85), T["hook2"])
+    m.add("music", supersaw(CH["E"][0], 1.7, att=0.1, rel=0.3, fc=800, g=0.5), T["hook2"], send=0.4)
+    hook(m, T["hook2"], HOOK_SOMBRE, g=0.55, octave=-12, send=0.4)
+    m.add("fx", rev_cymbal(1.2, 0.9), T["titre"] - 1.2)
+    m.add("fx", riser(1.0, top=8000, g=0.6), T["titre"] - 1.0)
+    # 6 : « Voici RedRock » — braam, chute de sub, accord, le crochet
+    impact(m, T["titre"], duck=duck)
+    m.add("music", supersaw(CH["Am"][0] + [76], 1.9, att=0.005, rel=0.3, fc=lambda t: 1500 + 6000 * np.exp(-t * 2.5), g=0.6), T["titre"], send=0.3)
+    hook(m, T["titre"], HOOK, g=0.9)
+    m.add("drums", heart(0.8), 7.0, g=0.8)
+    m.add("fx", whoosh(0.5, 0.8), T["trade"] - 0.25)
+    # 8 → 12 : il trade seul, le chat. Trap en demi-temps, 808 qui glisse, roulements de charleston
+    prog = [("F", 29, None), ("C", 36, 29), ("G", 31, 36), ("Am", 33, 31)]
+    for b in range(2):
+        t0 = T["trade"] + 2 * b
+        trap_bar(m, t0, None, duck, hat_rolls=[(t0 + 1.5, t0 + 2.0)] if b == 0 else [(t0 + 1.75, t0 + 2.0)])
+    for k, (ch, root, prev) in enumerate(prog):
+        t0 = T["trade"] + k
+        m.add("bass", b808(root, 0.9, from_m=prev, g=0.85), t0)
+        m.add("music", supersaw(CH[ch][0], 0.95, att=0.01, rel=0.2, fc=2600, g=0.42), t0, send=0.25)
+    hook(m, T["trade"], HOOK, g=0.75)
+    hook(m, T["chat"], HOOK, g=0.55, octave=-12)
+    for tw in (T["trade2"], T["chat"]):
         m.add("fx", whoosh(0.5, 0.8), tw - 0.25)
-    m.add("fx", tap(0.9), T["tap"], pan=0.2)
-    m.add("drums", crash(1.4, 0.6), T["trio"], send=0.15)
-    roll(m, 13.5, 14.0, 0.2, 0.45, div=4)
-    # 14-16 : l'enjeu. Accord de mi (tension), basse en doubles croches, roulement qui accélère, montée
-    t0 = T["enjeu"]
-    for i in range(4):
-        m.add("drums", kick(), t0 + i * BEAT, g=0.75)
-        duck.append(t0 + i * BEAT)
-    for i in range(16):
-        m.add("drums", hat(g=0.5 + 0.03 * i), t0 + i * S16, pan=0.2 * (-1) ** i)
-    for i in range(16):
-        m.add("bass", bass(CH["E"][1], S16 * 0.8), t0 + i * S16, g=0.5)
-    m.add("music", pad(CH["E"][0], 2.0, att=0.2, bright=0.3, rel=0.05), t0, g=0.75, send=0.3)
-    for i in range(8):   # demi-ton qui insiste : si / do
-        m.add("music", pluck(71 + (i % 2), BEAT / 2 * 0.7, 0.6), t0 + i * BEAT / 2, g=0.6, send=0.25)
-    for i in (1, 3):
-        m.add("drums", clap(), t0 + i * BEAT, g=0.5, send=0.15)
-    m.add("fx", riser(2.0, top=10000, g=1.25), t0)
-    roll(m, 15.0, T["mort"], 0.25, 0.9, div=4)
-    return m.render(duck_times=duck, gate_at=T["mort"]), m.onsets + [T["mort"]]
+    m.add("fx", tap(0.8), T["envoi"], pan=0.2)
+    # 12 → 15 : l'enjeu. Le cœur accélère, charleston en doubles croches → triolets → triples croches, montée
+    m.add("fx", whoosh(0.5, 0.8), T["vie"] - 0.25)
+    m.add("fx", text_hit(1.0), T["vie"])
+    m.add("bass", b808(26, 1.45, from_m=33, glide=0.1, g=0.85), T["vie"])
+    m.add("bass", b808(28, 1.45, from_m=26, glide=0.12, g=0.9), T["seuil"])
+    m.add("music", supersaw(CH["Dm"][0], 1.45, att=0.05, rel=0.1, fc=1200, g=0.45), T["vie"], send=0.3)
+    m.add("music", supersaw(CH["E"][0], 1.5, att=0.05, rel=0.1, fc=lambda t: 900 + 2600 * t / 1.6, g=0.5), T["seuil"], send=0.3)
+    impact(m, T["seuil"], g=0.6, dark=True, duck=duck)
+    for tb in (12.0, 12.75, 13.5, 14.0, 14.5, 14.75, 15.0):
+        m.add("drums", heart(1.0), tb, g=1.0)
+        m.add("fx", monitor_bip(0.8), tb + 0.02, pan=0.15, send=0.25)
+    hats(m, T["vie"], T["seuil"], step=S16, g=0.7)
+    hat_roll(m, T["seuil"], 14.25, div=6, g0=0.4, g1=0.55)
+    hat_roll(m, 14.25, T["ralenti"], div=8, g0=0.45, g1=0.75)
+    snare_roll(m, 14.0, T["ralenti"], div=4, g0=0.15, g1=0.6)
+    m.add("fx", riser(T["ralenti"] - T["seuil"], top=9000, g=0.9), T["seuil"])
+    x = m.render(duck_times=duck, depth=0.6)
+    return tape_stop(x, T["ralenti"], 0.42), m.onsets
 
 
-def teaser_after():
-    """Après la mort (16 → 22 s) : silence et grondement, puis la relève et la carte de fin."""
-    off = T["mort"]
+def teaser_mort():
+    """15 → 17 s : ralenti (un battement traîné, cymbale inversée), le choc (bégaiement, braam sombre), le trait
+    continu ; coupé net à 17 s (vrai silence ensuite)."""
+    off = T["ralenti"]
+    m = Mix(T["silence"] - off)
+    m.add("drums", heart(1.0, slow=1.6), 15.45 - off, g=1.0, send=0.35)
+    m.add("fx", rev_cymbal(0.9, 1.0), T["mort"] - 0.9 - off)
+    m.add("fx", swell(0.9, 0.8), T["mort"] - 0.9 - off)
+    # le choc : trois bégaiements du coup (45 ms) puis le coup entier
+    k = kick2(1.3)
+    sl = edges(k[: int(0.04 * SR)], a=0.0005, r=0.008)
+    for i in range(3):
+        m.add("drums", sl, T["mort"] - off + i * 0.045, g=0.55 + 0.1 * i)
+    tm = T["mort"] - off + 0.135
+    m.add("drums", k, tm, g=0.9)
+    m.add("fx", braam((28, 35, 40), dur=1.8, g=1.0, dark=True), T["mort"] - off, send=0.3)
+    m.add("fx", sub_drop(1.6, 95, 25, 1.0), T["mort"] - off)
+    m.add("fx", zap(0.8), T["mort"] - off, pan=-0.1)
+    m.add("fx", flatline(T["silence"] - T["mort"], 1.0), T["mort"] - off, send=0.2)
+    x = m.render(gate_at=T["silence"] - off, rt=1.6, wet=0.32)
+    return x, [t + off for t in m.onsets] + [T["silence"]]
+
+
+def zap(g=1.0, dur=0.24):
+    """Bug numérique au moment du choc : un ton qui dégringole, haché à 26 Hz (hachage doux, sans clic)."""
+    t = secs(int(dur * SR))
+    f = 110 + 1600 * np.exp(-t * 20)
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    x = (np.sin(ph) + 0.3 * np.sin(3 * ph)) * np.exp(-t * 8) * (0.55 + 0.45 * np.cos(2 * np.pi * 26 * t))
+    return edges(x * 0.3 * g, a=0.001, r=0.02)
+
+
+def teaser_releve():
+    """17,5 → 26,5 s : coup sourd et la tombe, le cœur qui repart, la montée, le drop, la carte de fin."""
+    off = T["tombe"]
     m = Mix(T["dur"] - off)
     duck = []
-    m.add("fx", sub_boom(3.2, 58, 26, 1.2), 0.0, send=0.25)
-    m.add("fx", bonk(0.9), T["bonk"] - off, send=0.2)
-    m.add("fx", pop(g=0.8), T["tombe"] - off, pan=-0.3, send=0.2)
-    m.add("music", pad(CH["Am"][0], 0.9, att=0.85, bright=0.15, rel=0.1), 17.0 - off, g=0.35, send=0.4)
-    m.add("fx", swell(0.995, 0.9), 17.0 - off)
-    # 18-20 : la relève
-    t0 = T["releve"] - off
-    m.add("drums", crash(g=1.0), t0, send=0.2)
-    m.add("fx", sub_boom(1.6, 62, 30, 0.4), t0)
-    drums(m, t0, t0 + 2.0, hats16=True, open_hats=True, duck=duck)
-    bassline(m, t0, "Am")
-    m.add("music", pad(CH["Am"][0], 2.0, bright=0.5, rel=0.2), t0, g=0.5, send=0.3)
-    motif(m, t0, "Am", bright=1.0, g=0.85)
-    motif(m, t0, "Am", bright=0.7, g=0.5, octave=12, inst="lead")
-    m.add("fx", pop(500, 1300, 0.7), T["atterrit"] - off, send=0.15)
-    roll(m, 19.5 - off, T["fin"] - off, 0.2, 0.6, div=4)
-    # 20 : coup final sur le logo, accord de la mineur (+ 9e), queue courte
+    m.add("fx", sub_drop(2.4, 60, 24, 1.0), 0.0, send=0.2)
+    m.add("drums", kick2(1.0), 0.0, g=0.7)
+    m.add("fx", braam((33, 40), dur=1.6, g=0.5, dark=True), 0.0, send=0.3)
+    m.add("fx", pop(g=0.6), T["plop"] - off, pan=-0.3, send=0.2)
+    # 18 : le cœur repart (et le moniteur avec) ; la relève atterrit à 18,6 s (paillettes) ; la montée vers le drop
+    for tb in (18.0, 18.75, 19.25, 19.5, 19.75):
+        m.add("drums", heart(0.95), tb - off, g=0.95)
+        m.add("fx", monitor_bip(0.7), tb - off + 0.02, pan=0.15, send=0.25)
+    m.add("music", supersaw(CH["Am"][0], 2.0, att=0.3, rel=0.05,
+                            fc=lambda t: 500 + 4500 * (t / 2.05) ** 2, g=0.5), T["releve"] - off, send=0.3)
+    hook(m, T["releve"] - off, HOOK_ESPOIR, g=0.6)
+    m.add("fx", pop(500, 1300, 0.6), T["atterrit"] - off, send=0.15)
+    m.add("music", shimmer(1.4, 0.9), T["atterrit"] - off, send=0.45)
+    m.add("fx", riser(1.0, top=10000, g=0.9), 19.0 - off)
+    m.add("fx", rev_cymbal(1.0, 0.8), 19.0 - off)
+    hat_roll(m, 19.0 - off, 19.5 - off, div=6, g0=0.3, g1=0.5)
+    hat_roll(m, 19.5 - off, T["appareils"] - off, div=8, g0=0.45, g1=0.75)
+    snare_roll(m, 19.5 - off, T["appareils"] - off, div=4, g0=0.2, g1=0.65)
+    # 20 → 24 : le drop. Future bass : supersaw large qui pompe sur chaque temps, 808, clap sur 2 et 4, crochet
+    impact(m, T["appareils"] - off, g=0.7, duck=duck)
+    prog = [("Am", 33, None), ("F", 29, 33), ("C", 36, 29), ("G", 31, 36)]
+    for b, (ch, root, prev) in enumerate(prog):
+        t0 = T["appareils"] - off + b
+        for q in range(2):
+            m.add("drums", kick2(), t0 + q * BEAT, g=0.75)
+            duck.append(t0 + q * BEAT)
+        m.add("drums", clap2(), t0 + BEAT, g=0.7, send=0.12)
+        hats(m, t0 + S16, t0 + 1.0, step=S16 * 2, g=0.85)
+        m.add("drums", hat(True, 0.5), t0 + BEAT / 2, pan=0.25, send=0.05)
+        m.add("bass", b808(root, 0.92, from_m=prev, g=0.9), t0)
+        m.add("music", supersaw(CH[ch][0] + [CH[ch][0][0] + 12], 0.95, att=0.005, rel=0.15, fc=8500, g=0.7), t0, send=0.25)
+    hook(m, T["appareils"] - off, HOOK, g=0.95, send=0.3)
+    hook(m, T["tel"] - off, HOOK_ESPOIR, g=0.95, send=0.3)
+    for tw in (T["tv"], T["tel"]):
+        m.add("fx", whoosh(0.5, 0.8), tw - off - 0.25)
+    m.add("fx", tap(0.9), T["tap"] - off, pan=0.2)
+    hat_roll(m, 23.5 - off, T["fin"] - off, div=8, g0=0.35, g1=0.7)
+    m.add("fx", rev_cymbal(0.5, 0.7), T["fin"] - off - 0.5)
+    # 24 : carte de fin. Impact, accord large (la mineur + 9e) qui s'ouvre, écho du crochet, queue
     tf = T["fin"] - off
-    m.add("drums", kick(1.1), tf, g=0.75)
-    m.add("drums", crash(2.0, 0.9), tf, send=0.25)
-    m.add("fx", sub_boom(2.0, 60, 30, 0.35), tf)
-    for nt in (57, 64, 69, 71, 72, 76):
-        m.add("music", pluck(nt, 1.2, 0.8, cents=3), tf, g=0.26, send=0.45)
-    m.add("music", pad([45, 57, 64, 71, 72], 1.0, att=0.02, rel=0.8, bright=0.4), tf, g=0.45, send=0.4)
-    return m.render(duck_times=duck), [t + off for t in m.onsets]
+    impact(m, tf, g=0.9)
+    m.add("music", supersaw([57, 64, 69, 71, 72, 76], 1.6, att=0.005, rel=0.8, fc=lambda t: 5200 * np.exp(-t * 0.8) + 600, g=0.6), tf, send=0.4)
+    m.add("music", shimmer(1.6, 0.7), tf + 0.1, send=0.5)
+    for k, (dt, nt) in enumerate(((0.5, 83), (0.75, 81), (1.25, 83), (1.5, 81))):
+        m.add("music", pluck_lead(nt, 0.35, 1.0), tf + dt, g=0.5 / (1 + k), send=0.55)
+    return m.render(duck_times=duck, depth=0.7, rel=0.16), [t + off for t in m.onsets]
 
 
 def teaser(path, raw=False):
-    a, oa = teaser_song()
-    b, ob = teaser_after()
+    a, oa = teaser_vie()
+    b, ob = teaser_mort()
+    c, oc = teaser_releve()
     n = int(round(T["dur"] * SR))
     x = np.zeros((n, 2))
     x[:len(a)] += a
-    i = int(round(T["mort"] * SR))
+    i = int(round(T["ralenti"] * SR))
     x[i:i + len(b)] += b[: n - i]
-    info = {"sons": len(oa) + len(ob) - 1, "clics_suspects": click_scan(x, oa + ob)}
+    i = int(round(T["tombe"] * SR))
+    x[i:i + len(c)] += c[: n - i]
+    info = {"sons": len(oa) + len(ob) + len(oc) - 1, "clics_suspects": click_scan(x, oa + ob + oc + [T["ralenti"] + 0.42])}
     if raw:
         write_wav(path, x / np.abs(x).max() * 0.5)
         return info
-    info.update(master(path, x, fade_out=0.35))
+    info.update(master(path, x, TP=-1.5, fade_out=0.6))
     return info
 
 
 # ---------------------------------------------------------------- installation (calme, 100 BPM)
+# accords de la musique d'installation : nappe, basse, motif du pluck
+CH_INST = {
+    "Am": ([57, 60, 64, 69], 33, [76, 69, 72, 76]), "F": ([53, 57, 60, 65], 29, [72, 65, 69, 72]),
+    "C": ([55, 60, 64, 67], 36, [76, 67, 72, 76]), "G": ([55, 59, 62, 67], 31, [74, 67, 71, 74]),
+}
+
+
 def installation(path, dur=34.0, raw=False):
     beat = 60 / 100
     bar = 4 * beat
@@ -630,7 +889,7 @@ def installation(path, dur=34.0, raw=False):
     t, k = 0.0, 0
     while t < dur - 0.5:
         ch = seq[k % 4]
-        notes, root, mot = CH[ch]
+        notes, root, mot = CH_INST[ch]
         end = min(dur - 1.2, t + bar)
         if end - t < 0.3:
             break

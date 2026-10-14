@@ -13,7 +13,7 @@ docker compose stop agent broker
 # trades, journal et courbe de la génération morte ; on remet à zéro l'état vital du broker
 docker run --rm --user "$(id -u):$(id -g)" -v "$PWD/data/broker:/d" -v "$PWD/$A:/o" python:3.12-slim python -c "
 import sqlite3, json
-c = sqlite3.connect('/d/clint.db'); c.row_factory = sqlite3.Row
+c = sqlite3.connect('/d/redrock.db'); c.row_factory = sqlite3.Row
 for t in ('trades', 'journal', 'equity'):
     json.dump([dict(r) for r in c.execute(f'SELECT * FROM {t} WHERE gen=$GEN')], open(f'/o/{t}.json', 'w'), indent=1, ensure_ascii=False, default=str)
 c.execute(\"DELETE FROM meta WHERE k IN ('dead','paper','born','death_cause','live_pending','day_ref','traj','freeze','guard_events','peak')\"); c.commit()"

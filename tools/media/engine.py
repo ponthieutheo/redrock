@@ -41,7 +41,20 @@ def init_script(storage=None, dpr_frames=None):
     for k, v in (storage or {}).items():
         pre.append(f"try {{ localStorage.setItem({k!r}, {v!r}); }} catch (e) {{}}")
     with open(os.path.join(HERE, "inject.js"), encoding="utf-8") as f:
-        return "\n".join(pre) + "\n" + f.read()
+        return "\n".join(pre) + "\n" + f.read() + "\n" + OFFLINE
+
+
+# Rien ne sort de la machine : l'app ne doit afficher que les données inventées du serveur des médias. Les graphiques
+# de position de l'app lisent d'ordinaire les vraies bougies d'Hyperliquid (requête et WebSocket publics) : ici les
+# requêtes vers un autre site échouent et le WebSocket est un faux, ouvert mais muet (l'app garde ses bougies locales).
+OFFLINE = """(() => {
+  const RF = window.fetch.bind(window);
+  window.fetch = (u, o) => { const s = String(u && u.url || u);
+    if (/^https?:/i.test(s) && !s.startsWith(location.origin)) return Promise.reject(new TypeError("hors ligne (médias)"));
+    return RF(u, o); };
+  window.WebSocket = class { constructor() { this.readyState = 0; setTimeout(() => { this.readyState = 1; this.onopen && this.onopen({}); }, 40); }
+    send() {} close() { this.readyState = 3; } addEventListener() {} removeEventListener() {} };
+})();"""
 
 
 def context(browser, w, h, dpr=1, mobile=False, storage=None, dpr_frames=None):

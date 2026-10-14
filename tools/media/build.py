@@ -2,13 +2,14 @@
 
     python -I -X utf8 tools/media/build.py                 # tout
     python -I -X utf8 tools/media/build.py --only teaser installation
+    python -I -X utf8 tools/media/build.py --only teaser-vertical   # le teaser en 9:16 (TikTok, Shorts, Reels)
     python -I -X utf8 tools/media/build.py --soft           # sans carte graphique (SwiftShader : bien plus lent)
 
 1. dans le dépôt privé, exporte d'abord la version publique (tools/export_public.py --no-git) : l'app filmée est
    exactement celle de GitHub ; dans le dépôt public, filme directement dash/ ;
 2. lance le serveur des médias (server.py) : l'app publique + une fausse API aux données inventées (fixtures.py) ;
-3. captures PNG (capture.py), aperçu animé WebP (render.py apercu), musiques (music.py), vidéos MP4 (render.py),
-   affiche du teaser (render.py --poster) ;
+3. captures PNG (capture.py), aperçu animé WebP (render.py apercu), musiques (music.py), vidéos MP4 (render.py :
+   le teaser en 16:9 et en 9:16, même musique, même montage), affiche du teaser (render.py --poster) ;
 4. contrôle chaque image des vidéos (bulle, bouche, 3D, textes, images vides, sauts : render.py échoue au moindre
    défaut), mesure les vidéos et leur son (verify.py) et sort les planches contact dans tools/media/out/planches/ ;
 5. écrit tout dans docs/media/ (dépôt privé : tools/public/docs/media/) (+ la musique seule : tools/media/out/teaser-musique.mp3) et vérifie
@@ -34,8 +35,8 @@ OUT = os.path.join(REPO, "tools", "public", "docs", "media") if PRIVE else os.pa
 EXTRA = os.path.join(HERE, "out")
 PORT = 8897
 LIMITS = {".png": 2e6, ".webp": 6e6, ".gif": 6e6, ".mp4": 8e6}
-STEPS = ["captures", "apercu", "teaser", "installation"]
-POSTER_AT = 13.9   # le trio PC, TV, téléphone
+STEPS = ["captures", "apercu", "teaser", "teaser-vertical", "installation"]
+POSTER_AT = 23.5   # affiche : le trio PC, TV, téléphone (posé exprès en mode affiche)
 
 
 def py(*args, **kw):
@@ -72,20 +73,23 @@ def main():
             py(os.path.join(HERE, "capture.py"), "--out", OUT, *soft)
         if "apercu" in steps:
             py(render, "apercu", "--out", OUT, "--report", EXTRA, *soft)
-        for name in ("teaser", "installation"):
+        for name in ("teaser", "teaser-vertical", "installation"):
             if name not in steps:
                 continue
-            wav = os.path.join(tmp, name + ".wav")
+            song = "installation" if name == "installation" else "teaser"   # les deux formats du teaser : même musique, même montage
+            wav = os.path.join(tmp, song + ".wav")
             dur = []
             if name == "installation":   # la musique prend la durée de la composition (calée sur la fin du terminal)
                 d = py(render, name, "--duration", "--out", tmp, capture_output=True, text=True).stdout.strip().splitlines()[-1]
                 dur = ["--dur", d]
-            py(os.path.join(HERE, "music.py"), name, wav, *dur)
+            if not os.path.isfile(wav):
+                py(os.path.join(HERE, "music.py"), song, wav, *dur)
+                if song == "teaser":
+                    subprocess.run([E.ffmpeg(), "-y", "-loglevel", "error", "-i", wav, "-c:a", "libmp3lame", "-b:a", "192k",
+                                    os.path.join(EXTRA, "teaser-musique.mp3")], check=True)
             py(render, name, "--out", OUT, "--audio", wav, "--report", EXTRA, *soft)
             if name == "teaser":
                 py(render, name, "--poster", str(POSTER_AT), "--out", OUT, *soft)
-                subprocess.run([E.ffmpeg(), "-y", "-loglevel", "error", "-i", wav, "-c:a", "libmp3lame", "-b:a", "192k",
-                                os.path.join(EXTRA, "teaser-musique.mp3")], check=True)
             py(os.path.join(HERE, "verify.py"), "video", os.path.join(OUT, name + ".mp4"), "--sheets", os.path.join(EXTRA, "planches"))
     finally:
         srv.terminate()

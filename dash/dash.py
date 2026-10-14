@@ -1,4 +1,4 @@
-"""Dashboard de Clint — lecture seule.
+"""Dashboard de RedRock — lecture seule.
 
 Lit la base du broker (montée en lecture seule), la toolbox et les tâches Hermes (lecture
 seule), et l'état du sous-compte via l'API publique Hyperliquid (aucune clé).
@@ -24,10 +24,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import requests
 
 SUB = os.environ["HL_SUBACCOUNT"].lower()
-GEN = os.environ.get("GENERATION_FILE", "/clint/broker.env")
-DB = "/clint/broker-data/clint.db"
-TOOLBOX = "/clint/hermes-data/toolbox"
-CRON = "/clint/hermes-data/cron/jobs.json"
+GEN = os.environ.get("GENERATION_FILE", "/redrock/broker.env")
+DB = "/redrock/broker-data/redrock.db"
+TOOLBOX = "/redrock/hermes-data/toolbox"
+CRON = "/redrock/hermes-data/cron/jobs.json"
 HL = "https://api.hyperliquid.xyz/info"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -123,7 +123,7 @@ def read(path, tail=None):
         return None
 
 
-LOG = "/clint/hermes-data/logs/agent.log"
+LOG = "/redrock/hermes-data/logs/agent.log"
 TOOL_LABELS = {"technicals": "analyse technique", "orderbook": "carnet d'ordres", "orderflow": "flux d'ordres",
                "liquidity_heatmap": "heatmap de liquidité", "derivatives_context": "dérivés", "macro_context": "macro",
                "news": "actualités", "whales": "positions des baleines", "market_overview": "vue du marché",
@@ -180,7 +180,7 @@ def activity(jobs):
 def graveyard():
     """Générations mortes, lues dans lineage/ (toujours à jour, contrairement au fichier env monté)."""
     out = []
-    base = "/clint/lineage"
+    base = "/redrock/lineage"
     dirs = sorted((d for d in os.listdir(base) if d.startswith("gen")), key=lambda d: int(d[3:]))         if os.path.isdir(base) else []
     for d in dirs:
         try:
@@ -232,7 +232,7 @@ def stops_path(t, opens, moves):
 
 def news_signals():
     try:
-        c = sqlite3.connect("file:/clint/broker-data/intel.db?mode=ro", uri=True, timeout=3)
+        c = sqlite3.connect("file:/redrock/broker-data/intel.db?mode=ro", uri=True, timeout=3)
         c.row_factory = sqlite3.Row
         try:
             rows = c.execute("SELECT id, kind, title, ts, coins, impact FROM events WHERE impact='high' AND seen_ts>? "
@@ -1109,9 +1109,9 @@ def state_entry(lite=False):
         return _state_cache["lite" if lite else "full"]
 
 
-# ---------------------------------------------------------------- chat avec Clint (relais vers l'API de Hermes)
+# ---------------------------------------------------------------- chat avec RedRock (relais vers l'API de Hermes)
 CHAT_KEY = os.environ.get("CHAT_KEY", "")
-HERMES_URL = os.environ.get("HERMES_URL", "http://clint:8642")
+HERMES_URL = os.environ.get("HERMES_URL", "http://redrock:8642")
 HERMES_API_KEY = os.environ.get("HERMES_API_KEY", "")
 CHAT_SESSION = "dashboard-chat"
 CHAT_SESSION_RE = re.compile(r"dashboard-chat(-[0-9A-Za-z_]{1,40})?")

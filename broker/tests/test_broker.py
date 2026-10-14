@@ -710,3 +710,43 @@ def test_paper_capital_demarre_sans_lire_le_compte(env, monkeypatch):
     assert s["cash"] == 250.0 and s["start"] == 250.0
     assert "clearinghouseState" not in hl.calls and "spotClearinghouseState" not in hl.calls
     assert B.snapshot()["equity"] == 250.0
+
+
+# ------------------------------------------------------------------ base de l'ancien nom (renommage RedRock, 14/10)
+def _base(path, v):
+    import sqlite3
+    c = sqlite3.connect(path)
+    c.execute("PRAGMA journal_mode=WAL")
+    c.execute("PRAGMA wal_autocheckpoint=0")     # la donnée reste dans le -wal tant que la connexion vit
+    c.execute("CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY, v TEXT)")
+    c.execute("INSERT OR REPLACE INTO meta VALUES('peak', ?)", (v,))
+    c.commit()
+    return c
+
+
+def test_ancienne_base_renommee_au_demarrage_avec_son_wal(tmp_path):
+    import shutil
+    import sqlite3
+    src, data = tmp_path / "src", tmp_path / "data"
+    src.mkdir()
+    data.mkdir()
+    c = _base(str(src / B.LEGACY_DB_NAME), "123.4")
+    for f in src.iterdir():                  # copie à chaud = l'état laissé par un arrêt brutal (donnée dans le -wal)
+        shutil.copy(f, data / f.name)
+    c.close()
+    assert (data / (B.LEGACY_DB_NAME + "-wal")).stat().st_size > 0
+    new = data / "redrock.db"
+    assert B.migrate_legacy_db(str(data), str(new)) is True
+    assert sorted(p.name for p in data.iterdir()) == ["redrock.db", "redrock.db-shm", "redrock.db-wal"]
+    assert sqlite3.connect(str(new)).execute("SELECT v FROM meta WHERE k='peak'").fetchone()[0] == "123.4"
+    assert B.migrate_legacy_db(str(data), str(new)) is False      # idempotent
+
+
+def test_ancienne_base_jamais_prise_si_la_nouvelle_existe(tmp_path):
+    import sqlite3
+    old, new = tmp_path / B.LEGACY_DB_NAME, tmp_path / "redrock.db"
+    _base(str(old), "1").close()
+    _base(str(new), "2").close()
+    assert B.migrate_legacy_db(str(tmp_path), str(new)) is False
+    assert old.exists() and sqlite3.connect(str(new)).execute("SELECT v FROM meta WHERE k='peak'").fetchone()[0] == "2"
+    assert B.migrate_legacy_db(str(tmp_path / "vide"), str(tmp_path / "vide" / "redrock.db")) is False

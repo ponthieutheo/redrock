@@ -193,7 +193,7 @@ class FakeExchange:
 def env(tmp_path, monkeypatch):
     hl = FakeHL()
     ex = FakeExchange(hl)
-    monkeypatch.setattr(B, "DB_PATH", str(tmp_path / "clint.db"))
+    monkeypatch.setattr(B, "DB_PATH", str(tmp_path / "redrock.db"))
     monkeypatch.setattr(B, "MARKET_DB_PATH", str(tmp_path / "market.db"))
     monkeypatch.setattr(B, "info", hl.info)
     monkeypatch.setattr(B, "_ex", ex)

@@ -19,11 +19,11 @@
   <a href="LICENSES.md"><img src="https://img.shields.io/badge/media-CC%20BY--NC%204.0-lightgrey" alt="Media: CC BY-NC 4.0"></a>
 </p>
 
-https://github.com/user-attachments/assets/f052d4ff-7222-4c1e-bd21-9c66656a7bc9
+https://github.com/user-attachments/assets/c134c89d-277b-4564-adaf-4527ab3d1444
 
 <p align="center">
   <img src="docs/media/scene-pc.png" alt="The 3D trading floor: RedRock at its desk, under its screens (capital, positions, survival, news)">
-  <br><sub>The teaser (22 s, in French) and the 3D trading floor. Screenshots and videos use made-up data, in simulation mode.</sub>
+  <br><sub>The teaser (26 s, in French) and the 3D trading floor. Screenshots and videos use made-up data, in simulation mode.</sub>
 </p>
 
 ---
@@ -54,6 +54,21 @@ RedRock is an AI ([Hermes Agent](https://github.com/NousResearch/hermes-agent)) 
 <p align="center">
   <img src="docs/media/mort.png" width="720" alt="The handover: generation 3's tombstone, generation 4 drops in under the confetti">
 </p>
+
+## What it shows you
+
+Nothing is hidden: every trade has its thesis, every decision is written down, every result is measured, fees included.
+
+<table>
+  <tr>
+    <td align="center" width="50%"><b>Replay a trade</b><br><img src="docs/media/rejouer.webp" width="330" alt="A trade replay: candles roll in, the entry, the stop moving up in steps, the exit at take-profit and the result"><br><sub>candles, entry, trailing stop, exit</sub></td>
+    <td align="center" width="50%"><b>The thesis of each position</b><br><img src="docs/media/positions.png" width="330" alt="A LONG position with its chart, entry, stop, target and its thesis unfolded"><br><sub>why it took it, what would invalidate it, its plan</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Its thought journal</b><br><img src="docs/media/journal.png" width="330" alt="The journal: what it sees, what it decides and why, every cycle"><br><sub>what it sees, what it decides, and why</sub></td>
+    <td align="center"><b>Trade tracking</b><br><img src="docs/media/suivi.png" width="330" alt="Trade history with real results, and the mirror by setup type"><br><sub>real results, fees, mirror by setup type</sub></td>
+  </tr>
+</table>
 
 ## Quick start
 
@@ -88,6 +103,10 @@ RedRock is an installable web app (PWA), no app store: the same app on your PC, 
 The first device pairs with the link printed by the installer; the next ones with the QR code
 (Réglages → Appareils → Appairer). On Linux with [Tailscale](https://tailscale.com), the installer can also open
 the app to your phone **without a code**: your Tailscale account is the key ([docs/usage.md](docs/usage.md#sur-ton-téléphone)).
+
+As a vertical, phone-format video:
+
+https://github.com/user-attachments/assets/e716d1a7-4be9-4580-ac56-c1650e17305d
 
 <p align="center">
   <img src="docs/media/scene-tel.png" width="270" alt="The app on a phone: the screens on top, the character below">

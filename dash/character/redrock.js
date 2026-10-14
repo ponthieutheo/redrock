@@ -129,7 +129,8 @@ export function createCharacter(ctx) {
     const br = new THREE.Mesh(new THREE.CylinderGeometry(.06, .27, .34, 4, 1), straw); br.rotation.y = Math.PI / 4; br.scale.z = .4; br.position.y = .17; br.castShadow = true; BR.add(br);
     const bd = new THREE.Mesh(new THREE.CylinderGeometry(.075, .075, .05, 12), band); bd.position.y = .37; BR.add(bd); }
   owned.push(TB, BR);
-  let shadesK = 0, emoteK = null, emoteUntil = 0;
+  let shadesK = 0, emoteK = null, emoteUntil = 0, waveAt = 0, waveNow = 0;
+  const WAVE_MS = 2300;   // émote « salut » : la main monte à côté de la tête, trois signes, redescend
   const POSE = {
     trading: [V(-0.45, .3, 1.58), V(.5, .3, 1.58)], watching: [V(-0.45, .3, 1.58), V(.5, .3, 1.58)],
     thinking: [V(-0.45, .3, 1.58), V(.8, .55, 1.6)], sleeping: [V(-1.05, .24, 1.5), V(.95, .24, 1.45)],
@@ -152,8 +153,9 @@ export function createCharacter(ctx) {
     if (kind === "yawn") { yawnT = 2.6; return; }
     if (kind === "hatch") { hatch(); return; }
     if (kind === "talk") { if (window.talk) window.talk(pick(TALK)); return; }
-    emoteK = kind; emoteUntil = n + ({dance: 6000, think: 4500, panic: 4000, sleep: 5000, type: 4000, shades: 6000}[kind] || 4000);
+    emoteK = kind; emoteUntil = n + ({dance: 6000, think: 4500, panic: 4000, sleep: 5000, type: 4000, shades: 6000, salut: WAVE_MS}[kind] || 4000);
     if (kind === "dance" && window.__sfx) window.__sfx.fanfare();
+    if (kind === "salut") { waveAt = n; if (window.talk) window.talk("Salut !"); }
   }
 
   const api = {
@@ -313,6 +315,9 @@ export function createCharacter(ctx) {
       if (em === "panic") { danger = true; if (act === "sleeping") act = "watching"; }   // la panique réveille : yeux ouverts, sueur
       if (em === "sleep") act = "sleeping";
       if (em === "think" || em === "type") act = "thinking";
+      if (em === "salut" && act === "sleeping") act = "watching";   // on ne salue pas en dormant
+      // salut : il se tourne vers nous, penche la tête vers sa main, yeux rieurs (0 → 1 → 0 sur le geste)
+      waveNow = em === "salut" ? seg(now - waveAt, 0, 350) * (1 - seg(now - waveAt, WAVE_MS - 450, WAVE_MS)) : 0;
       const task = act === "thinking" ? (em === "think" ? "pense" : em === "type" ? "code" : S.task || "pense") : "";
       S.act = act; S.win = win; S.danger = danger; S.em = em; S.task = task;   // état résolu après les émotes : la scène s'en sert (écrans, confettis)
       const OF = S.outfit || {};
@@ -350,6 +355,7 @@ export function createCharacter(ctx) {
       if (alive && act !== "sleeping") { const br = Math.sin(t * (1.5 + tiredNow * 1.6)); sy *= 1 + br * (.01 + .014 * tiredNow); sx *= 1 - br * .006; }
       if (alive && !win) { y += -(tiredNow * .1 + hungryNow * .06 + sadNow * .05) + gladNow * (Math.sin(t * 2.4) * .5 + .5) * .03; rz += sadNow * .05; x += Math.sin(t * 19) * .008 * hungryNow; }
       if (caressNow > .01) { rz += Math.sin(t * 5) * .05 * caressNow; y -= .03 * caressNow; sx *= 1 + .03 * caressNow; sy *= 1 - .03 * caressNow; }
+      if (waveNow > 0) { rz -= .13 * waveNow; y += Math.sin((now - waveAt) / 1000 * 4.4 * Math.PI) * .025 * waveNow; }
       head.position.set(lerp(head.position.x, x, ease(14)), lerp(head.position.y, y, ease(12)), HEAD.z);
       head.scale.set(lerp(head.scale.x, sx * HS, ease(16)), lerp(head.scale.y, sy * HS, ease(16)), lerp(head.scale.z, sx * HS, ease(16)));
       crown.visible = alive && (OF.hat === "crown" || (!OF.hat && S.crown));
@@ -368,6 +374,7 @@ export function createCharacter(ctx) {
       // il dort : tête baissée qui dodeline au rythme de la respiration, visage (yeux fermés) toujours tourné vers nous ; il relève la tête en bâillant
       if (alive && act === "sleeping") { yaw = Math.sin(t * .23) * .05; pitch = .2 + Math.sin(t * 1.1) * .04 - yawn * .35; }
       if (PH.look > .001) { yaw = lerp(yaw, PH.yawT, PH.look); pitch = lerp(pitch, PH.pitchT, PH.look); rz += PH.rz * PH.look; }   // il regarde son téléphone
+      if (waveNow > 0) { yaw = lerp(yaw, 0, waveNow); pitch = lerp(pitch, -.04, waveNow); }   // il salue en nous regardant
       head.rotation.set(lerp(head.rotation.x, pitch, ease(5)), lerp(head.rotation.y, yaw, ease(5)), lerp(head.rotation.z, rz, ease(8)));
       // mort : yeux en croix, bouche noire, il vacille et tombe ; une pierre tombale surgit ; le remplaçant arrive, balaie la tombe et s'installe
       deadLook = !alive; deadFace = false; brAct = false;
@@ -414,7 +421,7 @@ export function createCharacter(ctx) {
       let mTarget = grinT > 0 ? 1 : .04 + gladNow * .1;                                      // au repos : bouche fermée
       if (speaking) { const ch = (say.text[Math.floor((now - say.t0) / 62)] || " ").toLowerCase();
         mTarget = /[aoàâ]/.test(ch) ? 1 : /[eiuyéèêëîïôûù]/.test(ch) ? .72 : /[mbp]/.test(ch) ? 0 : /[.,!?…:;]/.test(ch) ? .08 : ch === " " ? .22 : .42; }
-      else if (win || react === "boop") mTarget = 1;
+      else if (win || react === "boop" || waveNow > .3) mTarget = 1;
       else if (caressNow > .5) mTarget = .8;
       else if (danger) mTarget = .5 + .12 * Math.sin(t * 7);
       mouthNow = lerp(mouthNow, mTarget, ease(speaking ? 22 : 7));
@@ -431,6 +438,7 @@ export function createCharacter(ctx) {
         if (react === "ouch") { mode = "squint"; mouth = "zig"; }
         if (react === "boop") { mode = "happy"; mouth = "grin"; }
         if (caressNow > .4 && act !== "sleeping" && !react) { mode = "happy"; mouth = "grin"; }
+        if (waveNow > .3 && alive && !deadFace && !react) { mode = "happy"; mouth = "grin"; }
         const free = mode === "open" || mode === "wide" || mode === "happy";
         face.draw(mode, Math.round(blink * 6) / 6, Math.round((mouth === "grin" ? mouthNow : 1) * 32) / 32,
           {brows: Math.round(browNow * 10) / 10, panic: danger, think: task === "pense", focus: task === "ordre",
@@ -479,6 +487,11 @@ export function createCharacter(ctx) {
         if (i === 0 && brAct && alive) { p.copy(brHand); rate = 22; }
         if (i === 1 && window.__mugActive && window.__mugActive() && alive) { p.copy(window.__mugHand); rate = 20; }
         if (i === 1 && PH.k > 0 && alive) { p.copy(PH.hand); rate = 16; }
+        if (i === 1 && waveNow > 0 && alive) {   // salut : main levée à côté de la tête, trois signes du poignet
+          const w = (now - waveAt) / 1000, hp = head.position;
+          const sw = Math.sin(Math.max(0, w - .3) * Math.PI * 2 * 2.1) * seg(w, .3, .5) * (1 - seg(w, 1.65, 1.95));
+          p.lerp(V(hp.x + 1.08 + sw * .15, hp.y + .62 - Math.abs(sw) * .05, hp.z + .5), waveNow); rate = 24;
+        }
         if (cheeks) p.y += Math.sin(t * 9 + i * 2) * .025;
         if (win) { p.x += Math.sin(t * 6 + i) * .15; p.y += Math.sin(t * 9 + i) * .12; }
         h.position.lerp(p, ease(h.position.distanceToSquared(p) > .12 ? 9 : rate));   // grands trajets (clavier ↔ souris) en douceur

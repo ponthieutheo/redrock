@@ -32,7 +32,7 @@ départ pour écrire le vôtre.
 | `act` : `trading`, `watching`, `thinking`, `sleeping`, `dead` | clavier et souris, yeux qui lisent l'écran, main au menton, yeux fermés et tête basse, coque grise et yeux en croix |
 | `win`, `danger`, `fear`, `content` | petits bonds (et danse robot), tremblement et sueur, yeux violets qui rapetissent, joues roses |
 | `tama` (énergie, faim, humeur), `caress` | paupières lourdes, pile faible qui clignote, petit rebond, cœur et joues roses |
-| émotes `dance`, `wow`, `ouch`, `boop`, `think`, `panic`, `yawn`, `sleep`, `type`, `shades`, `hatch`, `talk` | toutes (les lunettes pixel tombent du haut de l'écran) |
+| émotes `dance`, `wow`, `ouch`, `boop`, `think`, `panic`, `yawn`, `sleep`, `type`, `shades`, `hatch`, `talk` | toutes (les lunettes pixel tombent du haut de l'écran) ; pas encore `salut` (ignorée, le bouton 👋 est masqué avec Boulon) |
 | `talking` + `window.__say` | la bouche-égaliseur suit les lettres de la bulle (voyelles ouvertes, m/b/p fermées, pauses) |
 | `unread`, `chatOpen` | il sort son téléphone (« 2 messages non lus »), le regarde, il vibre, l'antenne clignote avec |
 | tenues `hat` (`top`, `party`, `crown`), `glasses` (`pixel`, `round`), `ear` (`headset`), `neck` (`bow`) | toutes ; les autres valeurs sont ignorées |

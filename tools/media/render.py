@@ -37,9 +37,12 @@ import engine as E  # noqa: E402
 STORE = {"redrock-hint": "1", "hc1-tama-day": "2026-10-14", "hc1.chatkey": "demo"}
 COMPS = {
     "apercu": {"page": "apercu.html", "w": 960, "h": 600, "fps": 15, "dur": 12.0, "kind": "gif", "gif_w": 720},
-    # parties : (nom, début, fin, scénario de départ, densité de pixels des apps). 22 s, 120 BPM (voir music.py)
-    "teaser": {"page": "teaser.html", "w": 1920, "h": 1080, "fps": 30, "dur": 22.0, "kind": "mp4", "crf": 20, "max_mb": 7.6,
-               "parts": [("salle", 0.0, 8.0, "vie", 1.6), ("appareils", 8.0, 14.0, "vie", 1.25), ("fin", 14.0, 22.0, "danger", 1.8)]},
+    # parties : (nom, début, fin, scénario de départ, densité de pixels des apps). 26,5 s, 120 BPM (voir music.py).
+    # Le même montage en deux formats : 16:9 (README, YouTube) et 9:16 (TikTok, Shorts, Reels : teaser.html?fmt=v)
+    "teaser": {"page": "teaser.html", "w": 1920, "h": 1080, "fps": 30, "dur": 26.5, "kind": "mp4", "crf": 20, "max_mb": 7.6,
+               "parts": [("salle", 0.0, 12.0, "vie", 2.0), ("mort", 12.0, 20.0, "danger", 2.5), ("appareils", 20.0, 26.5, "vie", 1.25)]},
+    "teaser-vertical": {"page": "teaser.html", "query": "fmt=v", "w": 1080, "h": 1920, "fps": 30, "dur": 26.5, "kind": "mp4", "crf": 20, "max_mb": 7.6,
+                        "parts": [("salle", 0.0, 12.0, "vie", 3.0), ("mort", 12.0, 20.0, "danger", 3.4), ("appareils", 20.0, 26.5, "vie", 1.3)]},
     # installation neuve : génération 1 ; il dit bonjour (pas de « hc1-tama-day ») ; « hc1-hatched » évite la scène de
     # relève que l'app joue sinon à la première ouverture (avec une tombe « GÉN. 1 » alors que personne n'est mort)
     # durée : celle de la page (COMP.dur, calée sur la fin du terminal) ; `render.py installation --duration` l'affiche
@@ -79,10 +82,12 @@ def anim_from_frames(c, frames, out_webp, out_gif=None):
 
 
 def thumb(jpeg):
-    """Vignette 96×54 (sauts d'une image à l'autre) et contraste de l'image (écart entre ses pixels clairs et sombres)."""
+    """Vignette 96×54 (sauts d'une image à l'autre) et contraste de l'image (écart entre ses pixels clairs et sombres ;
+    un petit texte clair sur du noir compte aussi : on regarde les 0,1 % extrêmes, un peu pondérés)."""
     im = Image.open(io.BytesIO(jpeg)).convert("L")
     mid = np.asarray(im.resize((240, 135), Image.BILINEAR), dtype=float)
-    return np.asarray(im.resize((96, 54), Image.BILINEAR), dtype=float), float(np.percentile(mid, 99.5) - np.percentile(mid, 0.5))
+    c = max(np.percentile(mid, 99.5) - np.percentile(mid, 0.5), 0.8 * (np.percentile(mid, 99.9) - np.percentile(mid, 0.1)))
+    return np.asarray(im.resize((96, 54), Image.BILINEAR), dtype=float), float(c)
 
 
 def render_part(p, c, a, part, frames_dir, stills, log):
@@ -96,7 +101,10 @@ def render_part(p, c, a, part, frames_dir, stills, log):
     pg = ctx.new_page()
     errors = []
     E.watch(pg, errors)
-    url = f"{E.BASE_URL}/media/{c['page']}" + (f"?part={name}" if name else "") + ("&poster=1" if a.poster is not None else "")
+    q = [f"part={name}"] if name else []
+    q += [c["query"]] if c.get("query") else []
+    q += ["poster=1"] if a.poster is not None else []
+    url = f"{E.BASE_URL}/media/{c['page']}" + ("?" + "&".join(q) if q else "")
     pg.goto(url, wait_until="load")
     pg.wait_for_function("window.COMP && window.C", timeout=20000)
     pg.evaluate("async () => { await document.fonts.ready; await COMP.init(); }")
@@ -104,7 +112,9 @@ def render_part(p, c, a, part, frames_dir, stills, log):
         c["dur"] = c["dur"] or pg.evaluate("() => COMP.dur")
         t1 = c["dur"]
     cuts = pg.evaluate("() => COMP.cuts || []")
-    moves = pg.evaluate("() => COMP.moves || []")   # mouvements rapides voulus (volets, glissements) : sauts tolérés
+    moves = pg.evaluate("() => COMP.moves || []")   # mouvements rapides voulus (volets, glissements, effets) : sauts tolérés
+    blanks = pg.evaluate("() => COMP.blanks || []")  # noirs voulus (la coupe au noir de la mort) : image vide tolérée
+    cuts = cuts + [x for b in blanks for x in b]
     has_probe = pg.evaluate("() => typeof COMP.probe === 'function'")
     i0, i1 = round(t0 * fps), round(t1 * fps)
     if stills:
@@ -116,6 +126,7 @@ def render_part(p, c, a, part, frames_dir, stills, log):
         i1 = min(i1, round(max(mine) * fps) + 1)
     dt = 1000 / fps
     prev = None
+    pg.screenshot(type="jpeg", quality=10)   # une image jetée : la page et ses apps sont peintes avant la première vraie image
     tstart = time.time()
     for i in range(i0, i1):
         t = i / fps
@@ -147,7 +158,7 @@ def render_part(p, c, a, part, frames_dir, stills, log):
                 pr = pg.evaluate("(t) => COMP.probe(t)", t)
                 rec["apps"] = pr["st"]
                 errs += pr["errs"]
-            if contrast < 24:   # image vide : noire, d'une seule couleur, ou pas encore dessinée
+            if contrast < 24 and not any(b0 - 1e-6 <= t < b1 - 1e-6 for b0, b1 in blanks):   # image vide : noire, unie, pas encore dessinée
                 errs.append(f"image vide (luma {th.mean():.0f}, contraste {contrast:.0f})")
             near_cut = any(abs(t - k) < 1.5 / fps for k in cuts) or i == i0 or any(m0 <= t <= m1 for m0, m1 in moves)
             if rec.get("saut", 0) > JUMP and not near_cut:
@@ -241,7 +252,8 @@ def main():
             print(f"{out} : {mb:.2f} Mo (CRF {crf})", flush=True)
             if mb <= c.get("max_mb", 99) or crf >= 30:
                 break
-            crf += 1
+            # un cran de CRF ≈ −11 % de poids : on saute directement près du bon réglage (puis cran par cran)
+            crf += max(1, int(np.log(mb / c["max_mb"]) / np.log(1 / 0.89)))
         if mb > c.get("max_mb", 99):
             sys.exit(f"{out} trop lourd ({mb:.2f} Mo)")
     if not a.frames:

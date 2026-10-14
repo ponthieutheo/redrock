@@ -19,7 +19,7 @@
   <a href="LICENSES.md"><img src="https://img.shields.io/badge/m%C3%A9dias-CC%20BY--NC%204.0-lightgrey" alt="Médias : CC BY-NC 4.0"></a>
 </p>
 
-https://github.com/user-attachments/assets/f052d4ff-7222-4c1e-bd21-9c66656a7bc9
+https://github.com/user-attachments/assets/c134c89d-277b-4564-adaf-4527ab3d1444
 
 <p align="center">
   <img src="docs/media/scene-pc.png" alt="La salle des marchés en 3D : RedRock à son bureau, sous ses écrans (capital, positions, survie, actus)">
@@ -56,6 +56,21 @@ perpétuels d'[Hyperliquid](https://hyperliquid.xyz), avec une règle simple : *
   <img src="docs/media/mort.png" width="720" alt="La relève : la tombe de la génération 3, la génération 4 tombe du plafond sous les confettis">
 </p>
 
+## Ce qu'il te montre
+
+Rien n'est caché : chaque trade a sa thèse, chaque décision est écrite, chaque résultat est mesuré, frais inclus.
+
+<table>
+  <tr>
+    <td align="center" width="50%"><b>Rejouer un trade</b><br><img src="docs/media/rejouer.webp" width="330" alt="Le rejeu d'un trade : les bougies défilent, l'entrée, le stop qui remonte en escalier, la sortie au take-profit et le résultat"><br><sub>les bougies, l'entrée, le stop qui remonte, la sortie</sub></td>
+    <td align="center" width="50%"><b>La thèse de chaque position</b><br><img src="docs/media/positions.png" width="330" alt="Une position LONG avec son graphique, son entrée, son stop, son objectif et sa thèse dépliée"><br><sub>pourquoi il l'a prise, ce qui l'invaliderait, son plan</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Son journal de pensée</b><br><img src="docs/media/journal.png" width="330" alt="Le journal : ce qu'il voit, ce qu'il décide et pourquoi, à chaque cycle"><br><sub>ce qu'il voit, ce qu'il décide, et pourquoi</sub></td>
+    <td align="center"><b>Le suivi de ses trades</b><br><img src="docs/media/suivi.png" width="330" alt="L'historique des trades avec leur résultat réel, et le miroir par type de setup"><br><sub>résultats réels, frais, miroir par type de setup</sub></td>
+  </tr>
+</table>
+
 ## Démarrage rapide
 
 ```bash
@@ -88,6 +103,10 @@ RedRock est une app web installable (PWA), sans store : la même app sur ton PC,
 Le premier appareil s'appaire avec le lien affiché par l'installation ; les suivants avec le QR code
 (Réglages → Appareils → Appairer). Sur Linux avec [Tailscale](https://tailscale.com), l'installateur peut aussi
 ouvrir l'app à ton téléphone **sans code** : ton compte Tailscale sert de clé ([docs/usage.md](docs/usage.md#sur-ton-téléphone)).
+
+En vidéo, au format téléphone :
+
+https://github.com/user-attachments/assets/e716d1a7-4be9-4580-ac56-c1650e17305d
 
 <p align="center">
   <img src="docs/media/scene-tel.png" width="270" alt="L'app sur téléphone : les écrans au-dessus, le perso en bas">

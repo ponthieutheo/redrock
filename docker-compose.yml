@@ -49,19 +49,19 @@ services:
     user: "${REDROCK_UID:-1000}:${REDROCK_GID:-1000}"
     environment:
       - HERMES_URL=http://agent:8642
-      - GENERATION_FILE=/clint/config/redrock.env
+      - GENERATION_FILE=/redrock/config/redrock.env
       # Socket Unix pour « tailscale serve » (data/sock/dash.sock, dossier en droits 700) : SEUL chemin où l'identité
       # Tailscale (TS_LOGINS de config/chat.env) ouvre l'app sans code. Par le port TCP, le code reste exigé. Voir SECURITY.md.
       - DASH_SOCK=/sock/dash.sock
     ports:
       - "${REDROCK_BIND:-127.0.0.1}:${REDROCK_PORT:-8750}:8750"
     volumes:
-      - ./config:/clint/config:ro
-      - ./data/broker:/clint/broker-data:ro
-      - ./data/hermes/cron:/clint/hermes-data/cron:ro
-      - ./data/hermes/logs:/clint/hermes-data/logs:ro
-      - ./data/hermes/toolbox:/clint/hermes-data/toolbox:ro
-      - ./data/lineage:/clint/lineage:ro
+      - ./config:/redrock/config:ro
+      - ./data/broker:/redrock/broker-data:ro
+      - ./data/hermes/cron:/redrock/hermes-data/cron:ro
+      - ./data/hermes/logs:/redrock/hermes-data/logs:ro
+      - ./data/hermes/toolbox:/redrock/hermes-data/toolbox:ro
+      - ./data/lineage:/redrock/lineage:ro
       - ./data/dash:/data
       - ./data/sock:/sock
     security_opt: ["no-new-privileges:true"]

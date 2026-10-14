@@ -52,6 +52,10 @@ def sheets(path, out, every=0.25, cols=6, rows=4, width=480, prefix="planche"):
     """Une image toutes les `every` s, en planches de cols×rows, horodatées. Renvoie la liste des planches."""
     from PIL import Image, ImageDraw, ImageFont
     os.makedirs(out, exist_ok=True)
+    info = video_info(path)
+    vw, vh = (int(v) for v in info["taille"].split("x"))
+    if vh > vw:   # vidéo verticale : des vignettes plus étroites, plus de colonnes, même nombre d'images par planche
+        cols, rows, width = 8, 3, 300
     tmp = tempfile.mkdtemp(prefix="redrock-sheet-")
     # une image toutes les `every` secondes (la plus proche de k·every)
     subprocess.run([E.ffmpeg(), "-v", "error", "-y", "-i", path, "-vf", f"fps=1/{every},scale={width}:-1",

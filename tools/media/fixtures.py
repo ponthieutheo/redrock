@@ -57,6 +57,8 @@ def candles(coin, interval="5m", n=60, start=None, end=None, salt=0):
     """Bougies inventées qui finissent au prix du marché inventé (trajectoire à graine fixe par coin)."""
     step = {"1m": 60, "5m": 300, "15m": 900, "1h": 3600}.get(interval, 300) * 1000
     end = end or VNOW_MS
+    if coin == SHOW["coin"] and start and start < SHOW["close_ms"] and end > SHOW["open_ms"]:
+        return {"coin": coin, "interval": interval, "candles": _show_candles(start, end, step)}
     count = n if not start else max(2, min(400, (end - start) // step))
     rnd = random.Random(f"{coin}:{interval}:{start}:{salt}")
     last = PRICES.get(coin, 10.0)
@@ -75,6 +77,54 @@ def candles(coin, interval="5m", n=60, start=None, end=None, salt=0):
         lo = min(o, c) * (1 - abs(rnd.gauss(0, vol * 0.6)))
         out.append([t0 + i * step, round(o, 6), round(h, 6), round(lo, 6), round(c, 6)])
     return {"coin": coin, "interval": interval, "candles": out}
+
+
+# Le trade montré par « Rejouer le trade » (Historique) : LINK LONG x3, entrée 17,21, SL remonté trois fois
+# (17,02 → 17,21 → 17,36 → 17,52) sous chaque nouveau creux, sortie au TP 17,73 en 1 h 30. Les bougies de cette
+# période suivent ces niveaux (jamais un SL touché, le TP touché à la sortie), le reste du graphe est libre.
+SHOW = {"coin": "LINK", "open_min": 220, "close_min": 130, "entry": 17.21, "exit": 17.73, "tp": 17.73,
+        "stops": [(0, 17.02), (35, 17.21), (60, 17.36), (82, 17.52)]}   # (minutes après l'ouverture, SL)
+SHOW["open_ms"] = VNOW_MS - SHOW["open_min"] * 60000
+SHOW["close_ms"] = VNOW_MS - SHOW["close_min"] * 60000
+SHOW_PATH = [(-60, 17.08), (-40, 17.12), (-25, 17.16), (-10, 17.18), (0, 17.21), (12, 17.33), (24, 17.26), (34, 17.42),
+             (47, 17.37), (59, 17.55), (69, 17.48), (81, 17.66), (90, 17.73), (100, 17.66), (115, 17.69), (140, 17.71)]
+
+
+def _show_price(m):
+    """Prix du trade montré à m minutes de l'ouverture : segments entre les points clés + petite houle régulière."""
+    P = SHOW_PATH
+    if m <= P[0][0]:
+        base = P[0][1]
+    elif m >= P[-1][0]:
+        base = P[-1][1]
+    else:
+        k = next(i for i in range(len(P) - 1) if P[i][0] <= m <= P[i + 1][0])
+        (a, pa), (b, pb) = P[k], P[k + 1]
+        u = (m - a) / (b - a)
+        base = pa + (pb - pa) * (u * u * (3 - 2 * u))
+    return base + 0.012 * math.sin(m * 1.7) * math.sin(m * 0.37 + 1.1)
+
+
+def _show_candles(start, end, step):
+    out = []
+    t = start - start % step
+    rnd = random.Random(f"show:{step}")
+    while t < end:
+        m0, m1 = (t - SHOW["open_ms"]) / 60000, (t + step - SHOW["open_ms"]) / 60000
+        o, c = _show_price(m0), _show_price(m1)
+        h = max(o, c) + abs(rnd.gauss(0, 0.006))
+        lo = min(o, c) - abs(rnd.gauss(0, 0.006))
+        close_m = SHOW["open_min"] - SHOW["close_min"]
+        if m1 <= close_m:   # pendant le trade : le TP n'est touché qu'à la sortie, aucun SL n'est touché
+            h = min(h, SHOW["tp"] - 0.004)
+            sl = max(lv for mm, lv in SHOW["stops"] if mm <= max(0.0, m0)) if m0 >= 0 else None
+            if sl is not None:
+                lo = max(lo, sl + 0.02)
+        if m0 < close_m <= m1:
+            h = SHOW["tp"]
+        out.append([int(t), round(o, 4), round(max(h, o, c), 4), round(min(lo, o, c), 4), round(c, 4)])
+        t += step
+    return out
 
 
 _rand_i = [0]
@@ -111,13 +161,30 @@ def actus():
 
 
 # ---------------------------------------------------------------- état de l'agent
-POSITIONS = [   # coin, side, size, entry, leverage, sl, tp, ouverte il y a (h), thèse
+POSITIONS = [   # coin, side, size, entry, leverage, sl, tp, ouverte il y a (h), thèse (texte de l'agent : résumé, puis blocs)
     ("BTC", "long", 0.0018, 83212.0, 3, 82450.0, 86400.0, 5.2,
-     "[setup:retest] [src:cycle] Retest réussi de 83 000 $ en 1 h, funding neutre, volume acheteur en hausse. Stop sous le dernier creux."),
+     "[setup:retest] [src:cycle] Retest réussi de 83000 $ en 1 h : je prends le LONG, risque 1 % du capital.\n\n"
+     "POURQUOI : L'ancienne résistance de 83000 $ est devenue support, trois mèches l'ont testée sans clôturer dessous. "
+     "Volume acheteur en hausse sur le rebond, funding neutre (+0,004 %) : pas d'excès côté LONG. "
+     "Mon miroir : les retests 1 h gagnent 7 fois sur 10 depuis ma naissance.\n\n"
+     "CE QUI L'INVALIDE : Une clôture 1 h sous 82800 $. Un funding au-dessus de +0,03 % (trop de LONG). "
+     "Le Nasdaq qui décroche avant l'ouverture américaine.\n\n"
+     "PLAN : SL 82100 sous le dernier creux, TP 86400 sur l'ancien plus haut. Levier x3, 150 $ d'exposition. "
+     "SL remonté sous chaque nouveau creux 1 h, au point mort dès +1 %."),
     ("ETH", "short", 0.045, 3200.6, 2, 3291.0, 3082.0, 2.4,
-     "[setup:rejet] [src:cycle] Troisième rejet sous 3 220 $ en 4 h, divergence baissière du RSI. Stop au-dessus de la résistance."),
+     "[setup:rejet] [src:cycle] Troisième rejet sous 3220 $ en 4 h : je joue le SHORT, petite taille.\n\n"
+     "POURQUOI : Trois mèches rejetées au même niveau, volume vendeur à chaque test, divergence baissière du RSI 4 h. "
+     "ETH sous-performe BTC depuis lundi : le flux va ailleurs.\n\n"
+     "CE QUI L'INVALIDE : Une clôture 4 h au-dessus de 3260 $. Un SHORT contre la tendance 4 h est perdant pour moi "
+     "(leçon de la génération 1) : ici la tendance 4 h est baissière, sinon je n'entre pas.\n\n"
+     "PLAN : SL 3291 au-dessus de la résistance, TP 3082 sur le support de jeudi. Levier x2. Sortie manuelle si BTC casse 85000 $."),
     ("SOL", "long", 0.62, 182.92, 3, 177.4, 191.5, 0.8,
-     "[setup:momentum] [src:news] Activité réseau au plus haut du mois et cassure du range. Petite taille, stop large."),
+     "[setup:momentum] [src:news] Cassure du range 176-181 $ avec volume, actu réseau favorable : LONG, petite taille.\n\n"
+     "POURQUOI : Clôture 1 h au-dessus de 181 $ avec deux fois le volume moyen. L'activité réseau est au plus haut du mois "
+     "(dépêche de 13 h 45), le funding reste neutre.\n\n"
+     "CE QUI L'INVALIDE : Un retour sous 180 $ en clôture 1 h : la cassure serait fausse. Les cassures sur actu ne gagnent "
+     "que 5 fois sur 10 pour moi : taille réduite.\n\n"
+     "PLAN : SL 177,4 large sous le range, TP 191,5. Levier x3, taille réduite de moitié. Si +2 %, SL au point mort."),
 ]
 
 COINS = ["BTC", "ETH", "SOL", "HYPE", "LINK", "SUI", "AVAX", "DOGE", "XRP", "AAVE"]
@@ -172,12 +239,21 @@ def _trades(rnd, now):
     for coin, side, lev, entry, exit_, pnl, why, o_ago, c_ago in TODAY:
         i += 1
         setup = "retest" if why == "take_profit" else "rejet"
-        out.append({"id": i, "gen": 3, "coin": coin, "side": side, "size": round(30 * lev / entry, 5), "entry": entry, "exit": exit_,
-                    "leverage": lev, "opened_at": iso(now - timedelta(minutes=o_ago)), "closed_at": iso(now - timedelta(minutes=c_ago)),
-                    "pnl": pnl, "pnl_net": pnl, "pnl_estimate": pnl, "fees": 0.02, "fees_total": 0.02,
-                    "stop_loss": round(entry * (0.985 if side == "long" else 1.012), 4), "take_profit": round(entry * (1.0135 if side == "long" else 0.97), 4),
-                    "close_reason": why, "status": "closed", "stops_path": [],
-                    "thesis": f"[setup:{setup}] [src:cycle] {coin} : {REASONS[setup]}. Risque 1 % du capital."})
+        t_open = now - timedelta(minutes=o_ago)
+        tr = {"id": i, "gen": 3, "coin": coin, "side": side, "size": round(30 * lev / entry, 5), "entry": entry, "exit": exit_,
+              "leverage": lev, "opened_at": iso(t_open), "closed_at": iso(now - timedelta(minutes=c_ago)),
+              "pnl": pnl, "pnl_net": pnl, "pnl_estimate": pnl, "fees": 0.02, "fees_total": 0.02,
+              "stop_loss": round(entry * (0.985 if side == "long" else 1.012), 4), "take_profit": round(entry * (1.0135 if side == "long" else 0.97), 4),
+              "close_reason": why, "status": "closed", "stops_path": [],
+              "thesis": f"[setup:{setup}] [src:cycle] {coin} : {REASONS[setup]}. Risque 1 % du capital."}
+        if coin == SHOW["coin"]:   # le trade de « Rejouer le trade » : vrais niveaux, SL remonté trois fois
+            tr.update(size=3.54, stop_loss=SHOW["stops"][-1][1], take_profit=SHOW["tp"], fees=0.05, fees_total=0.05, pnl_net=round(pnl - 0.05, 4),
+                      stops_path=[[iso(t_open + timedelta(minutes=m)), sl, SHOW["tp"]] for m, sl in SHOW["stops"]],
+                      thesis="[setup:retest] [src:cycle] Retest de 17,20 $ validé en 1 h : LONG, risque 1 % du capital.\n\n"
+                             "POURQUOI : L'ancienne résistance de 17,20 $ tient comme support, volume acheteur en hausse, funding neutre.\n\n"
+                             "CE QUI L'INVALIDE : Une clôture 1 h sous 17,10 $.\n\n"
+                             "PLAN : SL 17,02 sous le creux, TP 17,73 sur le haut de la semaine. SL remonté sous chaque nouveau creux 1 h.")
+        out.append(tr)
     for k, (coin, side, size, entry, lev, sl, tp, ago, thesis) in enumerate(POSITIONS):
         i += 1
         out.append({"id": i, "gen": 3, "coin": coin, "side": side, "size": size, "entry": entry, "leverage": lev,
@@ -186,15 +262,36 @@ def _trades(rnd, now):
     return sorted(out, key=lambda x: -x["id"])
 
 
-JOURNAL = [   # il y a (minutes), type, texte
-    (12, "cycle", "Cycle de 14 h : BTC tient 84 000 $, ETH reste sous sa résistance, SOL accélère. Je garde mes trois positions et je remonte le stop de BTC sous 82 450 $."),
-    (48, "open", "SOL LONG x3 à 182,92 : cassure du range avec volume, actu réseau favorable. SL 177,4, TP 191,5. Risque 1 % du capital."),
-    (75, "stops", "BTC SL→82450 : le prix a fait un plus haut au-dessus de 84 000 $, je protège la moitié du gain latent."),
-    (130, "close", "LINK LONG fermé au TP : +1,84 $. Le retest a tenu comme prévu, sortie propre."),
-    (144, "open", "ETH SHORT x2 à 3 200,6 : troisième rejet sous 3 220 en 4 h, divergence baissière. SL 3 291, TP 3 082."),
+JOURNAL = [   # il y a (minutes), type, texte (journal de pensée : titre — verdict, puis ce qu'il voit, décide et pourquoi)
+    (12, "cycle", "Cycle de 14 h — je garde mes trois positions, rien de neuf à ouvrir\n\n"
+                  "CE QUE JE VOIS :\n- BTC tient 84000 $ après le retest de 83000 $, volume acheteur stable.\n"
+                  "- ETH bute une quatrième fois sous 3220 $ : mon SHORT travaille.\n"
+                  "- SOL sort de son range avec du volume, l'actu réseau suit.\n- Funding neutre partout, aucune liquidation en vue.\n\n"
+                  "DÉCISION : Je ne touche à rien. 3 positions, 3 % du capital au risque : c'est mon maximum, je n'en ouvre pas une quatrième.\n\n"
+                  "POURQUOI : Mon miroir dit que les retests 1 h gagnent 7 fois sur 10 ; couper trop tôt m'a coûté 2,10 $ cette semaine. "
+                  "L'objectif du jour est à 0,3 % : pas besoin de forcer.\n\n"
+                  "CE QUI ME FERAIT CHANGER D'AVIS : une clôture 1 h de BTC sous 83000 $, ou un funding au-dessus de +0,03 %."),
+    (48, "open", "[setup:momentum] [src:news] SOL LONG x3 à 182,92 — cassure du range avec volume\n\n"
+                 "CE QUE JE VOIS : Clôture 1 h au-dessus de 181 $ avec deux fois le volume moyen. Dépêche de 13 h 45 : activité réseau au plus haut du mois.\n\n"
+                 "DÉCISION : LONG à 182,92, SL 177,4, TP 191,5. Taille réduite de moitié.\n\n"
+                 "POURQUOI : Les cassures sur actu ne gagnent que 5 fois sur 10 pour moi : j'y vais, mais petit. Risque 0,5 % du capital."),
+    (75, "stops", "[setup:retest] [src:cycle] BTC SL 82100 → 82450 — je protège la moitié du gain latent\n\n"
+                  "CE QUE JE VOIS : Nouveau plus haut 1 h au-dessus de 84000 $, creux précédent à 82600 $.\n\n"
+                  "DÉCISION : SL remonté sous ce creux, à 82450. Le TP reste à 86400.\n\n"
+                  "POURQUOI : Le risque au SL baisse de 31 % ; un gain qui redevient perte, c'est la faute que je ne refais plus."),
+    (130, "close", "[setup:retest] [src:cycle] LINK LONG fermé au TP — +1,84 $, PnL net +1,79 $\n\n"
+                   "CE QUI S'EST PASSÉ : Entrée 17,21 sur le retest de 17,20 $, SL remonté trois fois (17,02 → 17,21 → 17,36 → 17,52), sortie 17,73 au TP en 1 h 30.\n\n"
+                   "LEÇON : Remonter le SL sous chaque creux 1 h a verrouillé le gain sans couper le trade trop tôt. Je garde cette gestion."),
+    (144, "open", "[setup:rejet] [src:cycle] ETH SHORT x2 à 3200,6 — troisième rejet sous 3220 $ en 4 h\n\n"
+                  "DÉCISION : SHORT à 3200,6, SL 3291 au-dessus de la résistance, TP 3082 sur le support de jeudi.\n\n"
+                  "POURQUOI : Trois mèches rejetées au même niveau, divergence baissière du RSI 4 h, et la tendance 4 h est baissière : "
+                  "ce n'est pas un SHORT contre la tendance (leçon de la génération 1)."),
     (200, "cycle", "Cycle de 11 h : rien de clair sur les altcoins, funding neutre partout. Je ne force pas, rester sans nouvelle position n'est pas une faute."),
-    (262, "close", "AVAX SHORT fermé au SL : −0,62 $. Entrée trop tôt, avant la clôture de la bougie. Leçon notée."),
-    (312, "open", "BTC LONG x3 à 83 212 : retest réussi de 83 000 $, volume acheteur en hausse. SL 82 450, TP 86 400."),
+    (262, "close", "[setup:rejet] [src:cycle] AVAX SHORT fermé au SL — −0,62 $, PnL net -0,64 $\n\n"
+                   "LEÇON : Entrée trop tôt, avant la clôture de la bougie 1 h. La leçon 4 de la lignée le disait déjà : j'attends la clôture."),
+    (312, "open", "[setup:retest] [src:cycle] BTC LONG x3 à 83212 — retest réussi de 83000 $\n\n"
+                  "DÉCISION : LONG à 83212, SL 82100 sous le dernier creux, TP 86400. Risque 1 % du capital.\n\n"
+                  "POURQUOI : Volume acheteur en hausse sur le rebond, funding neutre. Mon meilleur setup : 7 retests gagnants sur 10."),
     (380, "plan", "Plan du jour : +1 % suffit. Deux à trois trades maximum, uniquement des setups qui ont déjà marché pour moi (retest, rejet)."),
     (612, "daily", "Bilan de la nuit : objectif tenu, +1,3 % sur la journée d'hier. Quatrième nuit d'affilée en vie."),
     (650, "review", "Revue quotidienne : 7 trades, 5 gagnants. Les retests en 1 h marchent, les SHORT contre la tendance 4 h non. J'arrête ces derniers."),
@@ -276,11 +373,14 @@ def state(scenario="vie"):
     for coin, side, size, entry, lev, sl, tp, ago, thesis in pos:
         mark = marks[coin]
         upnl = (mark - entry) * size * (1 if side == "long" else -1)
+        liq = entry * (1 - 0.95 / lev) if side == "long" else entry * (1 + 0.95 / lev)   # marge isolée, marge de maintien comprise
         positions.append({"coin": coin, "side": side, "size": size, "entry": entry, "mark": mark, "leverage": lev,
-                          "upnl": round(upnl, 4), "margin": round(entry * size / lev, 4), "liq": None,
-                          "notional": round(size * mark, 4), "sl": sl, "tp": tp, "sl_at": open_tr[coin]["opened_at"], "tp_at": open_tr[coin]["opened_at"],
+                          "upnl": round(upnl, 4), "margin": round(entry * size / lev, 4), "liq": round(liq, 1 if entry > 1000 else 2),
+                          "notional": round(size * mark, 4), "sl": sl, "tp": tp,
+                          "sl_at": iso(now - timedelta(minutes=75)) if coin == "BTC" else open_tr[coin]["opened_at"], "tp_at": open_tr[coin]["opened_at"],
                           "stop_moves": 1 if coin == "BTC" else 0, "last_move": None, "warnings": [],
-                          "sl_history": [{"level": sl, "ts": None}], "thesis": thesis, "opened_at": open_tr[coin]["opened_at"]})
+                          "sl_history": [{"level": 82100.0, "ts": open_tr[coin]["opened_at"]}, {"level": sl, "ts": iso(now - timedelta(minutes=75))}]
+                          if coin == "BTC" else [{"level": sl, "ts": None}], "thesis": thesis, "opened_at": open_tr[coin]["opened_at"]})
     if not alive or gen == 4:
         for t in trades:
             if t["status"] == "open":

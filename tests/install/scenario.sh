@@ -100,7 +100,7 @@ echo "  socket après relance : $(code --unix-socket "$SOCK" -H "$TS" http://ts/
 echo "=== 4. mort par drawdown en simulation, puis renaissance automatique"
 docker compose exec -T broker python -c "
 import sqlite3, json
-c = sqlite3.connect('/data/clint.db'); s = json.loads(c.execute(\"SELECT v FROM meta WHERE k='paper'\").fetchone()[0]); s['cash'] = 60.0
+c = sqlite3.connect('/data/redrock.db'); s = json.loads(c.execute(\"SELECT v FROM meta WHERE k='paper'\").fetchone()[0]); s['cash'] = 60.0
 c.execute(\"UPDATE meta SET v=? WHERE k='paper'\", (json.dumps(s),)); c.commit()"
 for _ in $(seq 1 60); do [ "$(grep ^GENERATION= config/redrock.env | cut -d= -f2)" = 2 ] && break; sleep 5; done
 sleep 60

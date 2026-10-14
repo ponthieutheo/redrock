@@ -68,12 +68,50 @@
   };
 
   // Contrôle d'une image : état de chaque app (bulle, bouche, 3D, textes) ; erreurs = l'image est fausse.
-  // talkOk : intervalles [a, b) où la bouche peut bouger (réponse dans le chat) ; partout ailleurs, interdit.
+  // Deuxième argument : talkOk (intervalles [a, b) où la bouche peut bouger), ou un objet d'options :
+  //   talkOk  : idem (réponse du chat, « Salut ! ») ; partout ailleurs, la bouche ne doit pas parler ;
+  //   safe    : {l, t, r, b} zone sûre (vidéo verticale : ni le haut, ni le bas, ni la colonne de droite des réseaux) :
+  //             chaque texte de la composition ([data-txt]) et le visage du perso (s'il est à l'image) doivent y tenir ;
+  //   face    : true = aucun texte de la composition ne doit toucher le visage du perso (window.__headPx de l'app).
+  // Toujours : aucun texte de la composition coupé (débordement de sa boîte ou du cadre).
+  // Un élément .card affiché en plein (opacité 1) cache les apps : pas de contrôle du visage tant qu'il est là.
   const BAD = /\bundefined\b|\bNaN\b|\[object /;
-  C.probe = (ids, t, talkOk) => {
+  const inter = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  const effOpacity = el => { let o = 1; for (let e = el; e && e.nodeType === 1; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.display === "none" || cs.visibility === "hidden") return 0; o *= +cs.opacity; } return o; };
+  // textes visibles ; une ligne faite de mots animés (.w) compte dès qu'un de ses mots se voit
+  C.texts = () => [...document.querySelectorAll("[data-txt]")].filter(e => {
+    if (!e.getClientRects().length || effOpacity(e) <= .02) return false;
+    const ws = e.querySelectorAll(":scope > .w");
+    return !ws.length || [...ws].some(w => +getComputedStyle(w).opacity > .02);
+  });
+  // boîte d'un texte une fois posé (sans les transformations des animations d'entrée), en px de la composition
+  const layoutRect = e => { let x = 0, y = 0; for (let n = e; n; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
+    return {left: x, top: y, right: x + e.offsetWidth, bottom: y + e.offsetHeight}; };
+  // largeur naturelle du texte (mots .w : somme des largeurs et marges ; sinon scrollWidth)
+  const natW = e => { const ws = e.querySelectorAll(":scope > .w"); if (!ws.length) return e.scrollWidth;
+    let s = 0; ws.forEach(w => { const cs = getComputedStyle(w); s += w.offsetWidth + parseFloat(cs.marginLeft) + parseFloat(cs.marginRight); }); return s; };
+  // visage du perso de l'app `id`, dans les coordonnées de la composition : {x, y, r} (null si la tête n'est pas là)
+  C.face = id => {
+    const f = C.$(id), w = f.contentWindow;
+    if (!w || !w.__headPx || !f.getClientRects().length || effOpacity(f) < .05) return null;
+    const h = w.__headPx(), R = f.getBoundingClientRect(), k = R.width / f.offsetWidth;
+    if (!(h.s > .3)) return null;
+    return {x: R.left + h.x * k, y: R.top + h.y * k, r: h.rad * k * h.s};
+  };
+  C.probe = (ids, t, opt) => {
+    const o = Array.isArray(opt) || !opt ? {talkOk: opt} : opt;
     const errs = [], st = [];
-    const ok = (talkOk || []).some(([a, b]) => t >= a - 1e-6 && t < b);
+    const ok = (o.talkOk || []).some(([a, b]) => t >= a - 1e-6 && t < b);
     if (BAD.test(document.body.innerText)) errs.push("composition : texte « undefined »/« NaN »");
+    const W = innerWidth, H = innerHeight, txt = C.texts(), rects = txt.map(e => [e, layoutRect(e)]);
+    for (const [e, r] of rects) {
+      const name = e.dataset.txt || e.id || e.className, nw = natW(e);
+      if (r.left < -1 || r.top < -1 || r.right > W + 1 || r.bottom > H + 1) errs.push(`texte « ${name} » hors du cadre`);
+      if (nw > e.clientWidth + 2) errs.push(`texte « ${name} » coupé (${Math.round(nw)} > ${e.clientWidth} px)`);
+      if (o.safe && (r.left < o.safe.l - 1 || r.top < o.safe.t - 1 || r.right > o.safe.r + 1 || r.bottom > o.safe.b + 1))
+        errs.push(`texte « ${name} » hors de la zone sûre (${Math.round(r.left)},${Math.round(r.top)} → ${Math.round(r.right)},${Math.round(r.bottom)})`);
+    }
+    const card = [...document.querySelectorAll(".card")].some(e => e.getClientRects().length && effOpacity(e) > .99);
     for (const id of ids) {
       const w = C.win(id), d = C.doc(id), say = d.getElementById("say"), ar = d.getElementById("arena");
       const sayOn = !!say && say.classList.contains("on");
@@ -84,13 +122,20 @@
       const th = [...d.querySelectorAll(".ov-thought, .ov-zzz")].some(e => w.getComputedStyle(e).display !== "none");
       const three = !!ar && ar.classList.contains("three-on");
       const hatchT = w.__hatchT ? Math.round(w.__hatchT() * 100) / 100 : null;
-      st.push({id, sayOn, sayVis, talking, speaking, bulle_pensee: th, three, hatchT});
+      const fc = card ? null : C.face(id);
+      st.push({id, sayOn, sayVis, talking, speaking, bulle_pensee: th, three, hatchT, visage: fc && [Math.round(fc.x), Math.round(fc.y), Math.round(fc.r)]});
       if (sayOn || sayVis) errs.push(`${id} : bulle de parole`);
-      if ((talking || speaking) && !ok) errs.push(`${id} : la bouche parle hors du chat`);
+      if ((talking || speaking) && !ok) errs.push(`${id} : la bouche parle hors des moments permis`);
       if (th) errs.push(`${id} : bulle de pensée ou Zzz`);
       if (!three) errs.push(`${id} : 3D éteinte`);
       // texte visible seulement (une iframe hors page renverrait aussi le code de ses scripts)
       if (C.$(id).getClientRects().length && BAD.test(d.body.innerText)) errs.push(`${id} : texte « undefined »/« NaN »`);
+      // le visage (cercle de la tête, un peu resserré) : aucun texte dessus ; dans la zone sûre s'il est à l'image
+      if (fc && fc.x > 0 && fc.x < W && fc.y > 0 && fc.y < H) {
+        const fr = {left: fc.x - fc.r * .85, right: fc.x + fc.r * .85, top: fc.y - fc.r * .85, bottom: fc.y + fc.r * .85};
+        if (o.face) for (const [e, r] of rects) if (inter(fr, r)) errs.push(`${id} : le texte « ${e.dataset.txt || e.id} » touche le visage`);
+        if (o.safe && (fc.x < o.safe.l || fc.x > o.safe.r || fc.y < o.safe.t || fc.y > o.safe.b)) errs.push(`${id} : visage hors de la zone sûre (${Math.round(fc.x)}, ${Math.round(fc.y)})`);
+      }
     }
     return {errs, st};
   };

@@ -89,7 +89,7 @@ Le personnage peut appeler l'app : `window.talk(texte)`, `window.__sfx.*()`, `wi
 | `partyUntil` | fin de la fête en cours (confettis) |
 | `hatch()` | lance la scène de mort et de relève |
 | `party(ms)` | fait la fête quelques secondes |
-| `emote(nom)` | `dance`, `wow`, `ouch`, `boop`, `think`, `panic`, `yawn`, `sleep`, `type`, `shades`, `hatch`, `talk` |
+| `emote(nom)` | `salut`, `dance`, `wow`, `ouch`, `boop`, `think`, `panic`, `yawn`, `sleep`, `type`, `shades`, `hatch`, `talk` (une émote inconnue est ignorée) |
 | `tap(dort)` | on lui touche la tête : il sursaute (et bâille s'il dormait) |
 | `line(type)` | une réplique au hasard (`"boop"` ou `"talk"`) |
 | `sip()` | boire une gorgée de café (toucher de la tasse) |

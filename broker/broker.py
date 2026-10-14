@@ -1,4 +1,4 @@
-"""Clint broker — seul détenteur de la clé Hyperliquid.
+"""RedRock broker — seul détenteur de la clé Hyperliquid.
 
 Expose à l'agent Hermes (via MCP HTTP) les données de marché, l'exécution sous
 garde-fous, le journal, et la lignée des générations. Gère la mort : capital à 0.
@@ -42,7 +42,7 @@ FREEZE_MAX_OPENS = 6          # ouvertures (ou ordres limite) en 60 s
 FREEZE_DROP = 0.15            # baisse d'equity depuis le plus haut de l'heure
 FREEZE_SECONDS = 3600
 DATA = "/data"
-DB_PATH = f"{DATA}/clint.db"
+DB_PATH = f"{DATA}/redrock.db"
 MARKET_DB_PATH = f"{DATA}/market.db"
 API = "https://api.hyperliquid.xyz/info"
 UA = {"User-Agent": "Mozilla/5.0"}
@@ -109,6 +109,26 @@ def init_db():
                     break
 
 
+# Nom de la base avant que le projet s'appelle RedRock (14/10). Une installation existante la retrouve sous son
+# nouveau nom au premier démarrage, au lieu de repartir d'une base vide (état vital, plus haut, lignée perdus).
+# Écrit en deux morceaux : l'ancien nom ne doit plus apparaître tel quel dans le dépôt.
+LEGACY_DB_NAME = "cl" "int.db"
+
+
+def migrate_legacy_db(data=DATA, path=None):
+    """Renomme l'ancienne base et ses fichiers -wal/-shm, seulement si la nouvelle n'existe pas encore."""
+    path = path or DB_PATH
+    old = os.path.join(data, LEGACY_DB_NAME)
+    if os.path.exists(path) or not os.path.exists(old):
+        return False
+    for suffix in ("-wal", "-shm", ""):   # la base en dernier : un arrêt au milieu se reprend au démarrage suivant
+        if os.path.exists(old + suffix):
+            os.replace(old + suffix, path + suffix)
+    print(f"base renommée : {old} -> {path}", flush=True)
+    return True
+
+
+migrate_legacy_db()
 init_db()
 
 
@@ -842,7 +862,7 @@ def recent_opens(seconds=60):
 
 
 # ---------------------------------------------------------------- témoin sans IA (papier)
-# La règle momentum que Clint présente comme son avantage, appliquée mécaniquement sur le papier :
+# La règle momentum que RedRock présente comme son avantage, appliquée mécaniquement sur le papier :
 # chaque jour à 00:05 UTC, long à poids égaux des 2 coins (parmi les 12 plus échangés sur 24 h) dont
 # la hausse sur 14 jours est la plus forte et ≥ 5 % ; frais + glissement sur la rotation, funding.
 # Sert à répondre : l'IA fait-elle mieux que sa propre règle sans IA ?
@@ -1177,7 +1197,7 @@ def write_autopsy():
 
 
 # ---------------------------------------------------------------- MCP tools
-mcp = FastMCP("clint-broker", host="0.0.0.0", port=8765)
+mcp = FastMCP("redrock-broker", host="0.0.0.0", port=8765)
 
 
 def _ok(x):
@@ -1580,7 +1600,7 @@ def _tpsl_orders(coin, side, size, stop_loss, take_profit):
 
 
 # ---------------------------------------------------------------- moteur de risque (11/10)
-# Les règles de Clint, rendues obligatoires : elles découlent de SES résultats réels (miroir), pas
+# Les règles de RedRock, rendues obligatoires : elles découlent de SES résultats réels (miroir), pas
 # d'une limite imposée. Inspiré des architectures qui marchent (Praxis, Circuit, Condor) : l'IA
 # propose, un moteur déterministe qu'elle ne peut pas contourner dispose. Ne touche jamais aux
 # fermetures, réductions et stops.
@@ -2079,7 +2099,7 @@ def _group_stats(items, label="ce type de setup"):
 @mcp.tool()
 def scorecard(all_generations: bool = False) -> str:
     """Ton miroir : tes VRAIS résultats (calculés depuis Hyperliquid, frais et funding inclus), par type
-    de setup ([setup:nom] dans la thèse) et par origine ([src:telegram|cycle|sentinel|bot:nom]),
+    de setup ([setup:nom] dans la thèse) et par origine ([src:chat|cycle|sentinel|bot:nom]),
     avec l'espérance, la taille conseillée (demi-Kelly prudent), les frais, l'exécution, la justesse
     de Jev et la comparaison avec « garder du BTC ». Relis-le avant de choisir une taille."""
     q = "SELECT * FROM trades WHERE status='closed'" + ("" if all_generations else " AND gen=?")
@@ -2178,7 +2198,7 @@ def scorecard(all_generations: bool = False) -> str:
                     r0 = c.execute("SELECT equity FROM equity WHERE gen=? AND ts>=? ORDER BY ts LIMIT 1",
                                    (GEN, w["since"])).fetchone()
                 if r0:
-                    w["clint_return_pct_same_period"] = round((eq / r0["equity"] - 1) * 100, 2)
+                    w["redrock_return_pct_same_period"] = round((eq / r0["equity"] - 1) * 100, 2)
             out["witness_no_ai"][table] = {**w, "rule": rule + " ; papier, frais + glissement + funding"}
     return _ok(out)
 

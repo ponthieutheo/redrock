@@ -200,6 +200,7 @@ body:has(.chat.open) .hint, body:has(.emote-tray:not([hidden])) .hint { display:
 .emo { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 2px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2);
   color: var(--ash); font: 600 12px/1.15 var(--display); cursor: pointer; text-align: center; }
 .emo span { font-size: 24px; line-height: 1.1; }
+html[data-perso="libre"] .emo[data-emote="salut"] { display: none; }   /* Boulon ne sait pas encore saluer */
 .emo:hover { color: var(--bone); border-color: var(--line-2); }
 .emo:active { transform: scale(.94); }
 .orow { padding: 6px 0; }
@@ -224,7 +225,7 @@ body:has(.chat.open) .hint, body:has(.emote-tray:not([hidden])) .hint { display:
 /* rejeu animé (~3 s) : les bougies apparaissent une à une derrière le curseur, entrée puis sortie qui « pop » */
 .rp-c { opacity: 0; animation: rpin .2s ease-out forwards; animation-delay: var(--d); }
 .rp-pt { opacity: 0; transform-box: fill-box; transform-origin: center; animation: rppop .45s cubic-bezier(.3,1.6,.5,1) forwards; animation-delay: var(--d); }
-.rp-cap { opacity: 0; animation: fadein .35s ease-out forwards; animation-delay: var(--d); }
+.rp-cap { opacity: 0; animation: rpin .35s ease-out forwards; animation-delay: var(--d); }   /* « fadein » n'a pas d'état final : la légende restait invisible */
 .rp-meta { font: 600 12.5px var(--display); margin: 0 0 6px 2px; }
 .rp-tmp { opacity: 0; animation: rpin .2s ease-out var(--d) forwards, rpout .25s ease-in var(--d2) forwards; }
 @keyframes rpout { from { opacity: 1; } to { opacity: 0; } }
@@ -1138,7 +1139,7 @@ html.tv .app { grid-template: "stage" minmax(0, 1fr) "ticker" auto / minmax(0, 1
         <div class="emote-tray" id="emote-tray" role="dialog" aria-label="Émotes et tenue" hidden>
         <div class="tray-hd"><div class="tray-tabs" role="tablist"><button role="tab" data-tray="emotes" aria-selected="true">Émotes</button><button role="tab" data-tray="outfit" aria-selected="false">Tenue</button></div><button class="x" type="button" data-close-tray aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
 
-        <div class="tray-body emos" data-tray="emotes"><button class="emo" type="button" data-emote="dance"><span aria-hidden="true">💃</span>Danse</button><button class="emo" type="button" data-emote="wow"><span aria-hidden="true">😮</span>Wow</button><button class="emo" type="button" data-emote="ouch"><span aria-hidden="true">😖</span>Aïe</button><button class="emo" type="button" data-emote="boop"><span aria-hidden="true">🤭</span>Chatouille</button><button class="emo" type="button" data-emote="think"><span aria-hidden="true">🤔</span>Réfléchit</button><button class="emo" type="button" data-emote="panic"><span aria-hidden="true">😱</span>Panique</button><button class="emo" type="button" data-emote="yawn"><span aria-hidden="true">🥱</span>Bâille</button><button class="emo" type="button" data-emote="sleep"><span aria-hidden="true">😴</span>Dodo</button><button class="emo" type="button" data-emote="type"><span aria-hidden="true">⌨️</span>Tape</button><button class="emo" type="button" data-emote="shades"><span aria-hidden="true">😎</span>Deal with it</button><button class="emo" type="button" data-emote="hatch"><span aria-hidden="true">🪦</span>Mort</button><button class="emo" type="button" data-emote="talk"><span aria-hidden="true">💬</span>Parle</button></div>
+        <div class="tray-body emos" data-tray="emotes"><button class="emo" type="button" data-emote="salut"><span aria-hidden="true">👋</span>Salut</button><button class="emo" type="button" data-emote="dance"><span aria-hidden="true">💃</span>Danse</button><button class="emo" type="button" data-emote="wow"><span aria-hidden="true">😮</span>Wow</button><button class="emo" type="button" data-emote="ouch"><span aria-hidden="true">😖</span>Aïe</button><button class="emo" type="button" data-emote="boop"><span aria-hidden="true">🤭</span>Chatouille</button><button class="emo" type="button" data-emote="think"><span aria-hidden="true">🤔</span>Réfléchit</button><button class="emo" type="button" data-emote="panic"><span aria-hidden="true">😱</span>Panique</button><button class="emo" type="button" data-emote="yawn"><span aria-hidden="true">🥱</span>Bâille</button><button class="emo" type="button" data-emote="sleep"><span aria-hidden="true">😴</span>Dodo</button><button class="emo" type="button" data-emote="type"><span aria-hidden="true">⌨️</span>Tape</button><button class="emo" type="button" data-emote="shades"><span aria-hidden="true">😎</span>Deal with it</button><button class="emo" type="button" data-emote="hatch"><span aria-hidden="true">🪦</span>Mort</button><button class="emo" type="button" data-emote="talk"><span aria-hidden="true">💬</span>Parle</button></div>
         <div class="tray-body" data-tray="outfit" hidden><div class="orow"><span class="olbl">Chapeau</span><div class="ochips" role="group" aria-label="Chapeau"><button type="button" data-slot="hat" data-val="" aria-pressed="false">Aucun</button><button type="button" data-slot="hat" data-val="top" aria-pressed="false">🎩 Haut-de-forme</button><button type="button" data-slot="hat" data-val="party" aria-pressed="false">🥳 Fête</button><button type="button" data-slot="hat" data-val="crown" aria-pressed="false">👑 Couronne</button></div></div><div class="orow"><span class="olbl">Lunettes</span><div class="ochips" role="group" aria-label="Lunettes"><button type="button" data-slot="glasses" data-val="" aria-pressed="false">Aucune</button><button type="button" data-slot="glasses" data-val="pixel" aria-pressed="false">😎 Pixel</button><button type="button" data-slot="glasses" data-val="round" aria-pressed="false">🤓 Rondes</button></div></div><div class="orow"><span class="olbl">Oreillette</span><div class="ochips" role="group" aria-label="Oreillette"><button type="button" data-slot="ear" data-val="" aria-pressed="false">Aucune</button><button type="button" data-slot="ear" data-val="headset" aria-pressed="false">🎧 Casque de trader</button></div></div><div class="orow"><span class="olbl">Cou</span><div class="ochips" role="group" aria-label="Cou"><button type="button" data-slot="neck" data-val="" aria-pressed="false">Rien</button><button type="button" data-slot="neck" data-val="bow" aria-pressed="false">🎀 Nœud papillon</button></div></div></div>
       </div>
       <div class="stage-fit" id="stage-fit">
@@ -3673,7 +3674,7 @@ function start() {
     }
   }
 
-  const CODE = ["import pandas as pd", "from clintlib import market, backtest", "", "df = market.candles(\"NEAR\", \"1h\", 2000)",
+  const CODE = ["import pandas as pd", "from redrocklib import market, backtest", "", "df = market.candles(\"NEAR\", \"1h\", 2000)",
     "sig = momentum(df, lookback=24)", "res = backtest.run(df, sig, stop_atr=2)", "print(res[\"stats\"])", "# hors échantillon d'abord",
     "wf = backtest.walk_forward(df, momentum,", "      {\"lookback\": [12, 24, 48]})", "if wf.return_pct.mean() > 0:", "    enable(\"bots/momo.py\")",
     "$ git commit -am \"momo v3\"", "$ tail -f bots/momo.log"];
@@ -4156,6 +4157,7 @@ function start() {
   }
   function headPx() { const r = cvs.getBoundingClientRect(), hw = head.position.clone().add(rig.position), a = hw.clone().project(camera), b = hw.clone().add(V(HS, 0, 0)).project(camera);
     return {x: r.left + (a.x + 1) / 2 * r.width, y: r.top + (1 - a.y) / 2 * r.height, rad: Math.abs(b.x - a.x) / 2 * r.width}; }
+  window.__headPx = () => Object.assign(headPx(), {s: head.scale.x / HS});   // crochet de test (vidéos) : la tête à l'écran, s = échelle (0 = disparue)
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   // 0 balance, 1 positions, 2 survie, 3 activité, 4 trades du jour, 5 marché
   const SCREEN_GO = [["courbe"], ["positions"], ["survie"], ["historique", "journal"], ["historique", "trades"], ["marche"], ["actus", "flash"], ["actus", "weird"]];
