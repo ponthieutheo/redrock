@@ -132,7 +132,9 @@ https://github.com/user-attachments/assets/e716d1a7-4be9-4580-ac56-c1650e17305d
 - **broker** (`broker/`): gives the agent market data and execution, behind guard rails (stop-loss placed and
   checked on the exchange, circuit breaker, journal). It enforces the death rule out of the agent's reach.
 - **agent**: the official `nousresearch/hermes-agent` image, with a starting persona
-  ([agent/SOUL.md](agent/SOUL.md)) and two scheduled tasks (one trading cycle per hour, one daily review).
+  ([agent/SOUL.md](agent/SOUL.md)), one trading cycle per hour, one daily review, and watch tasks (sentinel,
+  post-mortem, doctor, midnight report, memory) whose scripts ([agent/scripts/](agent/scripts)) only wake the AI when
+  something happens.
 - **dash** (`dash/`): the app. The character lives on its own in `dash/character/` and can be swapped for another
   one through a documented contract ([docs/personnage.md](docs/personnage.md)); Boulon, a free character, ships in
   `dash/character-libre/`.

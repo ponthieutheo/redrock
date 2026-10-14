@@ -17,6 +17,7 @@ import socket
 import sqlite3
 import threading
 import time
+import unicodedata
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -1589,7 +1590,27 @@ def cmd_dispatch(body):
 # /data/inbox.json et prévient par push. ops/monitor.py y dépose aussi ses alertes (POST /api/inbox/notify).
 INBOX_MAX = 200
 INBOX_TEXT_MAX = 4000
-INBOX_POLICY = {"compte-rendu quotidien minuit": "push", "post-mortem trades": "push", "revue-quotidienne": "push"}   # le reste : dans le chat, sans push
+# Niveau de chaque cron, d'après le DÉBUT de son nom (minuscules, sans accents, espaces et « _ » lus comme « - ») : les noms de
+# l'installation publique (« post-mortem », « compte-rendu-minuit », « sentinelle »…) comme les plus anciens (« post-mortem
+# trades », « sentinel-alerte »…). push = notification ; act = notification seulement si la sortie commence par « ACTION »
+# ou « ALERTE » (la tâche a agi, ou l'opérateur doit le faire), sinon dans le chat ; tout le reste (cycle, sommeil…) :
+# dans le chat, sans notification.
+INBOX_POLICY = [(re.compile(r"(compte-rendu|post-?mortem|revue)"), "push"),
+                (re.compile(r"(sentinel|docteur|doctor)"), "act")]
+INBOX_ACT_RE = re.compile(r"(action|alerte)\s*:", re.I)
+
+
+def inbox_level(name, text=""):
+    """Niveau (push / alert / quiet) de la sortie d'un cron d'après le nom de la tâche (voir INBOX_POLICY)."""
+    key = "".join(c for c in unicodedata.normalize("NFKD", str(name or "").lower()) if not unicodedata.combining(c))
+    key = re.sub(r"[\s_]+", "-", key.strip())
+    for rx, level in INBOX_POLICY:
+        if rx.match(key):
+            if level != "act":
+                return level
+            first = next((_md(x) for x in str(text or "").splitlines() if _md(x)), "")
+            return "alert" if INBOX_ACT_RE.match(first.lstrip("⚠️ ")) else "quiet"
+    return "quiet"
 CRON_SESSION_RE = re.compile(r"cron_[0-9a-f]{6,32}_\d{8}_\d{6}")
 INBOX_SOURCE_RE = re.compile(r"[A-Za-z0-9:_ .\-]{1,40}")
 _inbox_lock = threading.Lock()
@@ -1707,7 +1728,7 @@ def inbox_scan():
             level = "alert"
         else:
             head, rest = inbox_split(text)
-            level = INBOX_POLICY.get(name, "quiet")
+            level = inbox_level(name, text)
         inbox_add(f"cron:{name}", head, rest, text, level, sid, ts=x["ended_at"], read=not primed)
     if not primed:
         with _inbox_lock:

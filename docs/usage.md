@@ -92,10 +92,30 @@ Par sécurité, l'app refuse les commandes qui changent la configuration de l'ag
 **En plein écran** : le bouton de l'en-tête du chat passe en mode « appel », la conversation prend tout l'écran
 et RedRock reste dans une petite fenêtre que tu peux déplacer où tu veux.
 
+## Ses tâches planifiées
+
+| Tâche | Quand | Ce qu'il fait | Dans l'app |
+|---|---|---|---|
+| `cycle-trading` | toutes les heures | gère ses positions, en ouvre une s'il a une raison chiffrée | chat |
+| `revue-quotidienne` | 8 h | juge ses trades de la veille sur ses vrais résultats, note ses leçons | notification |
+| `sentinelle` | veille chaque minute | réagit à un coup de marché sur un coin tenu, un stop ou une liquidation proche, une annonce macro imminente, une actu à fort impact, le coupe-circuit | notification s'il agit, sinon chat |
+| `post-mortem` | veille chaque minute | analyse chaque trade fermé, résultat réel à l'appui | notification |
+| `docteur` | veille toutes les 5 min | soigne un problème qui dure (position sans stop, broker muet, tâche en échec…) | notification s'il agit ou s'il te faut intervenir |
+| `compte-rendu-minuit` | minuit | le bilan du jour : survie, trades, positions, leçons, plan | notification |
+| `sommeil-memoire` | 23 h 55 | range la journée dans `data/hermes/workspace/memoire/gen<N>/` et dans sa mémoire | chat |
+
+Les cinq dernières sont les **tâches de veille** (question de `./install.sh`, oui par défaut). Une « veille » est un
+petit script (`data/hermes/scripts/`) que Hermes lance sans IA : l'agent n'est réveillé, et l'IA payée, que si le
+script voit du nouveau. Compte ≈ 0,1 à 0,5 $ par jour de plus avec le modèle proposé, presque rien un jour calme.
+
+Pour en retirer une : `docker compose exec -u $(id -u) agent hermes cron list`, puis
+`docker compose exec -u $(id -u) agent hermes cron pause <id>` (ou `remove`). Le client du broker de ces scripts
+sert aussi à la main : `docker compose exec -u $(id -u) agent python /opt/data/scripts/broker_call.py account`.
+
 ## Messages et notifications
 
-Tout ce que l'agent produit seul (revue quotidienne, post-mortems, alertes) arrive dans le chat, avec sa
-source (« Cron · revue-quotidienne », « Alerte »). Quand il y a du nouveau, RedRock sort son téléphone.
+Tout ce que l'agent produit seul (revue quotidienne, post-mortems, compte-rendu, alertes) arrive dans le chat, avec
+sa source (« Cron · post-mortem », « Alerte »). Quand il y a du nouveau, RedRock sort son téléphone.
 
 Pour recevoir des **notifications** même app fermée : Réglages → **Notifications** (l'app doit être servie en
 HTTPS, ce que `tailscale serve` fait ; sur iPhone, l'app doit d'abord être ajoutée à l'écran d'accueil).

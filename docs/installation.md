@@ -41,10 +41,11 @@ Le script pose quelques questions. Pour chacune, Entrée garde la valeur propos�
 | Perte maximale | 0.35 = il meurt s'il perd 35 % depuis son plus haut |
 | Adresse d'écoute, port | garde `127.0.0.1` et `8750` (voir [SECURITY.md](../SECURITY.md)) |
 | Accès depuis ton téléphone par Tailscale ? | Linux seulement, « n » par défaut. « o » : ton identifiant Tailscale (`toi@example.com`), puis le port HTTPS (443). Le téléphone ouvre l'app sans code ; voir l'étape 5 |
+| Tâches de veille ? | « o » par défaut : sentinelle, post-mortem, docteur, compte-rendu de minuit, sommeil-mémoire. L'IA n'est réveillée que s'il se passe quelque chose (≈ 0,1 à 0,5 $ par jour de plus) ; voir [usage.md](usage.md#ses-tâches-planifiées) |
 
 Ensuite il génère la configuration, construit et lance les trois services, crée les tâches planifiées de
-l'agent (un cycle de trading par heure, une revue par jour) et installe la surveillance de la mort et de la
-relève. À la fin, il affiche :
+l'agent (un cycle de trading par heure, une revue par jour, et les tâches de veille si tu les as gardées) et
+installe la surveillance de la mort et de la relève. À la fin, il affiche :
 
 - l'adresse de l'app (par défaut `http://127.0.0.1:8750`) ;
 - **le lien d'appairage**, à ouvrir une fois sur chaque appareil (il contient ton code d'accès).
@@ -122,6 +123,8 @@ supprime le dossier.
 ## Vérifier l'installation (contributeurs)
 
 `sh tests/install/run.sh` rejoue toute l'installation sur une machine Linux neuve, recréée dans un conteneur
-Docker sur ton ordinateur : clone, `./install.sh` au clavier, app, chat, accès Tailscale (simulé), mort et
-renaissance en simulation, passage au réel avec un compte inventé et vide, retour en simulation. Aucun compte réel,
-rien ne sort de ta machine (~15 min, ~3 Go). À lancer après toute modification de `install.sh` ou de la compose.
+Docker sur ton ordinateur : clone, `./install.sh` au clavier, app, chat, tâches de veille (scripts lancés contre le
+vrai broker, trade simulé), accès Tailscale (simulé), mort et renaissance en simulation, passage au réel avec un
+compte inventé et vide, retour en simulation. Aucun compte réel, rien ne sort de ta machine (~20 min, ~3 Go). À
+lancer après toute modification de `install.sh` ou de la compose. Les scripts de veille ont aussi leurs tests hors
+ligne, face à un faux broker : `python3 tests/veille/test_veille.py`.

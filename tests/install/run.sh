@@ -10,7 +10,7 @@
 # Teste la version COMMITÉE (HEAD) : commite d'abord ce que tu veux tester.
 set -e
 cd "$(dirname "$0")/../.."
-command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1 || { echo "Docker est requis et doit être démarré." >&2; exit 1; }
+if ! command -v docker >/dev/null 2>&1 || ! docker info >/dev/null 2>&1; then echo "Docker est requis et doit être démarré." >&2; exit 1; fi
 [ -z "$(git status --porcelain --untracked-files=no 2>/dev/null)" ] || echo "Attention : des modifications non commitées ne seront pas testées (seul HEAD l'est)."
 D=$(mktemp -d)
 git bundle create "$D/redrock.bundle" HEAD 2>/dev/null

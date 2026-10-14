@@ -210,5 +210,24 @@ for i in range(dash.INBOX_MAX + 20):
 db = dash.inbox_db()
 ok("inbox bornée à INBOX_MAX éléments, ids toujours croissants", len(db["items"]) == dash.INBOX_MAX and [i["id"] for i in db["items"]] == sorted(i["id"] for i in db["items"]))
 ok("fichier persistant relu à l'identique", json.load(open(os.path.join(dash.DATA, "inbox.json")))["next"] == db["next"])
+
+# ---- niveau selon le nom de la tâche : noms publics et anciens noms -------------------------------------------------------------------
+lv = dash.inbox_level
+ok("push : post-mortem, compte-rendu, revue (noms publics et anciens)", all(lv(n, "x") == "push" for n in (
+    "post-mortem", "post-mortem trades", "Postmortem", "compte-rendu-minuit", "compte-rendu quotidien minuit", "Compte_rendu", "revue-quotidienne")))
+ok("quiet : cycle, sommeil, inconnu", all(lv(n, "ACTION : x") == "quiet" for n in ("cycle-trading", "sommeil-memoire", "sommeil-mémoire", "autre", "", None)))
+ok("sentinelle / docteur : alerte seulement s'ils ont agi (« ACTION : », « ALERTE : »)",
+   lv("sentinelle", "ACTION : BTC réduite de moitié avant le CPI") == "alert" and lv("sentinel-alerte", "**Action :** stop remonté") == "alert"
+   and lv("docteur", "\n⚠️ ALERTE : le broker ne répond plus") == "alert" and lv("Doctor", "alerte: x") == "alert")
+ok("sentinelle / docteur : une ligne sans action reste dans le chat",
+   lv("sentinelle", "Rien à faire : la macro est déjà dans les prix.") == "quiet" and lv("docteur", "Rétabli : le broker répond.") == "quiet"
+   and lv("sentinelle", "Actionnable plus tard") == "quiet" and lv("sentinelle", "Alerte vue, rien à faire") == "quiet")
+n_push = len(pushes)
+sess(SID("d4d4d4", 10), "sentinelle · Oct 13 23:10", 30, "ACTION : ETH fermée, l'annonce de délistage touche la position.")
+sess(SID("e5e5e5", 11), "docteur · Oct 13 23:11", 20, "Rétabli : position ETH de nouveau protégée.")
+dash.inbox_scan()
+it = {i["source"]: i for i in dash.inbox_db()["items"][-2:]}
+ok("scan : sentinelle qui agit = alerte poussée ; docteur rétabli = dans le chat",
+   it["cron:sentinelle"]["level"] == "alert" and it["cron:docteur"]["level"] == "quiet" and len(pushes) == n_push + 1 and pushes[-1][0].startswith("⚠️"))
 ok("aucune écriture vers Hermes sur tout le test", all(c[0] == "GET" for c in calls))
 sys.exit(1 if ok.bad else 0)
