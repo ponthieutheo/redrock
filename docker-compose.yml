@@ -1,0 +1,67 @@
+# RedRock : l'agent (Hermes), son garde-fou (broker) et l'app (dash).
+# Généré pour fonctionner avec install.sh : les fichiers config/*.env, secrets/*.env et data/ sont créés par lui.
+#
+#   broker : seul détenteur de la clé Hyperliquid ; applique les règles de mort HORS de portée de l'agent.
+#   agent  : Hermes Agent ; ne voit ni la clé ni les règles, il n'agit que par les outils du broker (MCP).
+#   dash   : l'app RedRock (scène 3D, chat, commandes, notifications) ; seul service publié, sur 127.0.0.1 par défaut.
+name: redrock
+
+services:
+  broker:
+    build: ./broker
+    image: redrock-broker:latest
+    restart: unless-stopped
+    env_file:
+      - ./config/redrock.env
+      - ./secrets/broker.env
+    user: "${REDROCK_UID:-1000}:${REDROCK_GID:-1000}"
+    volumes:
+      - ./data/broker:/data
+      - ./data/hermes/workspace:/workspace
+      - ./data/lineage:/lineage:ro
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    networks: [redrock]
+
+  agent:
+    image: nousresearch/hermes-agent:${HERMES_TAG:-latest}
+    restart: unless-stopped
+    depends_on: [broker]
+    command: ["gateway", "run"]
+    environment:
+      - HERMES_UID=${REDROCK_UID:-1000}
+      - HERMES_GID=${REDROCK_GID:-1000}
+    volumes:
+      - ./data/hermes:/opt/data
+      - ./data/lineage:/opt/data/lineage:ro
+    # Aucun port publié : l'API de Hermes (8642) n'est joignable que par le dashboard, sur le réseau interne.
+    # Pas de socket Docker monté : l'agent reste enfermé dans son conteneur (voir SECURITY.md).
+    networks: [redrock]
+
+  dash:
+    build: ./dash
+    image: redrock-dash:latest
+    restart: unless-stopped
+    depends_on: [agent]
+    env_file:
+      - ./config/redrock.env
+      - ./config/chat.env
+    environment:
+      - HERMES_URL=http://agent:8642
+      - GENERATION_FILE=/clint/config/redrock.env
+    ports:
+      - "${REDROCK_BIND:-127.0.0.1}:${REDROCK_PORT:-8750}:8750"
+    volumes:
+      - ./config:/clint/config:ro
+      - ./data/broker:/clint/broker-data:ro
+      - ./data/hermes/cron:/clint/hermes-data/cron:ro
+      - ./data/hermes/logs:/clint/hermes-data/logs:ro
+      - ./data/hermes/toolbox:/clint/hermes-data/toolbox:ro
+      - ./data/lineage:/clint/lineage:ro
+      - ./data/dash:/data
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    networks: [redrock]
+
+networks:
+  redrock:

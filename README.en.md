@@ -1,0 +1,106 @@
+<p align="center">
+  <img src="dash/icon-512.png" width="128" alt="">
+</p>
+
+<h1 align="center">RedRock</h1>
+
+<p align="center">
+  <a href="README.md">Français</a> · <b>English</b>
+</p>
+
+<p align="center">
+  <b>An autonomous trading agent that has to earn its living.</b><br>
+  If it loses too much, it dies. The next one is born with a blank memory and inherits only what its ancestors learned.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-3fcb7a" alt="Code: MIT"></a>
+  <a href="dash/character/LICENSE"><img src="https://img.shields.io/badge/character-PolyForm%20Noncommercial-f0101c" alt="Character: PolyForm Noncommercial"></a>
+  <a href="LICENSES.md"><img src="https://img.shields.io/badge/media-CC%20BY--NC%204.0-lightgrey" alt="Media: CC BY-NC 4.0"></a>
+</p>
+
+<!-- SCREENSHOT: the 3D trading floor, the character in front (docs/media/scene.png) -->
+<!-- GIF: tap the character, the call-style chat, a /status command (docs/media/chat.gif) -->
+
+---
+
+> [!WARNING]
+> RedRock can trade real money and **can lose all of its capital**. It is an experimental project, not financial
+> advice nor an investment product. Start in simulation, then with a small amount you are ready to lose, on a
+> dedicated sub-account.
+
+## What it is
+
+RedRock is an AI ([Hermes Agent](https://github.com/NousResearch/hermes-agent)) that trades
+[Hyperliquid](https://hyperliquid.xyz) perpetual futures on its own, with one simple rule: **its capital is its life**.
+
+- **It lives or dies.** A separate service, the broker, enforces the death rule (by default: −35 % from its
+  peak). The agent can neither read nor change it.
+- **It reincarnates.** When it dies, a new generation is born with a blank memory; it inherits its journal,
+  its trades and its autopsy.
+- **You watch it work.** The RedRock app shows it in a 3D trading floor: its equity curve, positions, survival,
+  journal and the news. You talk to it in the chat, like in a messaging app.
+- **Everything goes through the app.** Commands, scheduled-task notifications, alerts: no Telegram needed.
+- **It runs at home.** On a PC or a small always-on server, with Docker. Your keys never leave your machine.
+
+## Quick start
+
+```bash
+git clone https://github.com/ponthieutheo/redrock.git
+cd redrock
+./install.sh
+```
+
+The script checks Docker, asks for an [OpenRouter](https://openrouter.ai/keys) key, offers **simulation**
+(no risk) or real money, writes the configuration and starts everything. It then prints the app address and a
+pairing link for your devices.
+
+The app and the guides are in French for now:
+step-by-step install **[docs/installation.md](docs/installation.md)** · usage **[docs/usage.md](docs/usage.md)**.
+
+## On your phone
+
+RedRock is an installable web app (PWA), no app store:
+
+| Device | How |
+|---|---|
+| PC | open the app address in your browser (Chrome, Edge, Firefox, Safari) |
+| Android | Chrome, menu ⋮ → **Install app** |
+| iPhone / iPad | Safari, Share button → **Add to Home Screen** |
+
+The first device pairs with the link printed by the installer; the next ones with the QR code
+(Réglages → Appareils → Appairer).
+
+## How it is built
+
+```
+            ┌──────────────── your machine (Docker) ──────────────┐
+  you ──────┤  dash   RedRock app: 3D, chat, commands, push       │  only published service (127.0.0.1)
+  (app)     │    │  ▲                                             │
+            │    ▼  │ internal API                                │
+            │  agent  Hermes Agent: thinks, decides, writes       │  no port, no trading secret
+            │    │                                                │
+            │    ▼  MCP tools (place_trade, set_stops, account…)  │
+            │  broker  sole holder of the Hyperliquid key         │──▶ Hyperliquid
+            │          verified stops, guard rails, death rule    │
+            └─────────────────────────────────────────────────────┘
+```
+
+- **broker** (`broker/`): gives the agent market data and execution, behind guard rails (stop-loss placed and
+  checked on the exchange, circuit breaker, journal). It enforces the death rule out of the agent's reach.
+- **agent**: the official `nousresearch/hermes-agent` image, with a starting persona
+  ([agent/SOUL.md](agent/SOUL.md)) and two scheduled tasks (one trading cycle per hour, one daily review).
+- **dash** (`dash/`): the app. The character lives on its own in `dash/character/` and can be swapped for another
+  one through a documented contract ([docs/personnage.md](docs/personnage.md)).
+
+## Security
+
+By default the app is only reachable from your machine, the chat is protected by an access code (pairing by
+link or QR code), and the trading key is only read by the broker. Before opening access from your phone, read
+**[SECURITY.md](SECURITY.md)**.
+
+## Licenses
+
+The code is **MIT**. The RedRock character (`dash/character/`) is under **PolyForm Noncommercial 1.0.0**: free
+for any non-commercial use. Media (logo, icons, videos) are **CC BY-NC 4.0**. Details in
+[LICENSES.md](LICENSES.md).

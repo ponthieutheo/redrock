@@ -1,0 +1,10 @@
+# configuration et secrets générés par install.sh : jamais dans le dépôt
+.env
+config/*.env
+secrets/*
+!secrets/*.example
+data/
+*.log
+*.bak*
+__pycache__/
+node_modules/

@@ -1,0 +1,31 @@
+# Configuration de départ de l'agent (copiée dans data/hermes/config.yaml par install.sh).
+# __MODEL__ et __TZ__ sont remplacés à l'installation. Doc : https://hermes-agent.nousresearch.com/docs
+model:
+  default: "__MODEL__"
+  provider: "openrouter"
+  base_url: "https://openrouter.ai/api/v1"
+
+provider_routing:
+  require_parameters: true
+  data_collection: "deny"
+
+# Le terminal de l'agent tourne DANS son conteneur (lui-même isolé : pas de socket Docker, pas de port publié,
+# pas d'accès aux secrets du broker). Voir SECURITY.md avant de changer ce réglage.
+terminal:
+  backend: "local"
+  cwd: "/opt/data/workspace"
+  timeout: 180
+
+# Le broker : seule porte de l'agent vers le marché (outils MCP).
+mcp_servers:
+  redrock-broker:
+    url: "http://broker:8765/mcp"
+
+memory:
+  memory_enabled: true
+  user_profile_enabled: false
+
+approvals:
+  cron_mode: approve
+
+timezone: "__TZ__"

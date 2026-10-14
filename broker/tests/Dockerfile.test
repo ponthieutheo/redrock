@@ -1,0 +1,3 @@
+FROM redrock-broker:latest
+RUN pip install --no-cache-dir "pytest>=8,<9"
+WORKDIR /app
